@@ -1,6 +1,8 @@
 einops
+h5py
 jax
 matplotlib
+netCDF4
 numpy
 pandas
 pytorch-lightning
