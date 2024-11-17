@@ -116,7 +116,7 @@ else:
 
 # loader_dict: INFORMATION ABOUT THE EXPERIMENT, TRAINING, etc -- VERY IMPORTANT!
 loader_dict["which"] = which_example
-loader_dict["data path"] = path_to_data
+loader_dict["data_path"] = path_to_data
 loader_dict["time_input"] = training_properties["time_input"]
 loader_dict["cluster"] = training_properties["cluster"]
 loader_dict["num_samples"] = training_properties["training_samples"]
