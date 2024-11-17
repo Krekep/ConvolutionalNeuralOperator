@@ -280,7 +280,6 @@ def _initialize_model(
         activation=loader_dict["activation"],
         time_steps=loader_dict["time_steps"],
         is_time=loader_dict["is_time"],
-        p_loss=loader_dict["exp"],
         lr=loader_dict["learning_rate"],
         batch_size=loader_dict["batch_size"],
         weight_decay=loader_dict["weight_decay"],

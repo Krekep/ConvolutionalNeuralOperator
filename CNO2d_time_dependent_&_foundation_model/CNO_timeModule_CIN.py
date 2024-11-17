@@ -18,7 +18,7 @@ import pytorch_lightning as pl
 import numpy as np
 from torch.utils.data import DataLoader
 
-from DataLoaders.load_utils import _load_dataset
+from DataLoaders.load_utils import load_dataset
 
 from einops import rearrange
 from einops.layers.torch import Rearrange
@@ -604,7 +604,6 @@ class CNO_time(pl.LightningModule):
         time_steps=5,
         is_time=4,
         nl_dim=[1],
-        p_loss=1,
         lr=0.0005,
         batch_size=60,
         weight_decay=1e-6,
@@ -952,6 +951,24 @@ class CNO_time(pl.LightningModule):
             self.validation_errs_sep = dict()
             self.test_errs_sep = dict()
 
+    def set_loader_dict(self, loader_dict: dict):
+        """
+        Set information about the experiment.
+        Keys:
+            which --- equation name
+            data_path --- path to dataset
+            time_input
+            cluster
+            num_samples
+            dt
+            time_steps
+
+        Args:
+            loader_dict: dict
+                Dictionary with information about the experiment
+        """
+        self.loader_dictionary = loader_dict
+
     def forward(self, x, time):
 
         # Execute Lift ---------------------------------------------------------
@@ -1163,60 +1180,67 @@ class CNO_time(pl.LightningModule):
     def train_dataloader(self):
 
         which = self.loader_dictionary["which"]  # which benchmark
+        path_to_data = self.loader_dictionary["data_path"]
 
         if which == "eul_ns_mix1":
-            train_dataset1 = _load_dataset(
+            train_dataset1 = load_dataset(
                 dic=self.loader_dictionary,
                 which="eul_riemann",
                 which_loader="train",
                 in_dim=self.in_dim,
                 out_dim=self.out_dim,
                 masked_input=[1.0, 1.0, 1.0, 1.0],
+                data_path=path_to_data,
             )
 
-            train_dataset2 = _load_dataset(
+            train_dataset2 = load_dataset(
                 dic=self.loader_dictionary,
                 which="eul_riemann_cur",
                 which_loader="train",
                 in_dim=self.in_dim,
                 out_dim=self.out_dim,
                 masked_input=[1.0, 1.0, 1.0, 1.0],
+                data_path=path_to_data,
             )
 
-            train_dataset3 = _load_dataset(
+            train_dataset3 = load_dataset(
                 dic=self.loader_dictionary,
                 which="eul_gauss",
                 which_loader="train",
                 in_dim=self.in_dim,
                 out_dim=self.out_dim,
                 masked_input=[1.0, 1.0, 1.0, 1.0],
+                data_path=path_to_data,
             )
 
-            train_dataset4 = _load_dataset(
+            train_dataset4 = load_dataset(
                 dic=self.loader_dictionary,
                 which="eul_kh",
                 which_loader="train",
                 in_dim=self.in_dim,
                 out_dim=self.out_dim,
                 masked_input=[1.0, 1.0, 1.0, 1.0],
+                data_path=path_to_data,
             )
 
-            train_dataset5 = _load_dataset(
+            train_dataset5 = load_dataset(
                 dic=self.loader_dictionary,
                 which="ns_gauss",
                 which_loader="train",
                 in_dim=self.in_dim,
                 out_dim=self.out_dim,
                 masked_input=[1.0, 1.0, 1.0, 0.0],
+                data_path=path_to_data,
             )
 
-            train_dataset6 = _load_dataset(
+            train_dataset6 = load_dataset(
                 dic=self.loader_dictionary,
                 which="ns_sin",
                 which_loader="train",
                 in_dim=self.in_dim,
                 out_dim=self.out_dim,
                 masked_input=[1.0, 1.0, 1.0, 0.0],
+                data_path=path_to_data,
             )
 
             train_datasets = [
@@ -1244,13 +1268,14 @@ class CNO_time(pl.LightningModule):
             else:
                 mask = None
 
-            train_dataset = _load_dataset(
+            train_dataset = load_dataset(
                 dic=self.loader_dictionary,
                 which=which,
                 which_loader="train",
                 in_dim=self.in_dim,
                 out_dim=self.out_dim,
                 masked_input=mask,
+                data_path=path_to_data,
             )
 
         train_loader = DataLoader(
@@ -1424,60 +1449,67 @@ class CNO_time(pl.LightningModule):
 
     def val_dataloader(self):
         which = self.loader_dictionary["which"]  # which benchmark
+        path_to_data = self.loader_dictionary["data_path"]
 
         val_datasets = []
         num_datasets = 1
         num_out = 0
 
         if which == "eul_ns_mix1":
-            val_dataset1 = _load_dataset(
+            val_dataset1 = load_dataset(
                 dic=self.loader_dictionary,
                 which="eul_riemann",
                 which_loader="val",
                 in_dim=self.in_dim,
                 out_dim=self.out_dim,
                 masked_input=[1.0, 1.0, 1.0, 1.0],
+                data_path=path_to_data,
             )
-            val_dataset2 = _load_dataset(
+            val_dataset2 = load_dataset(
                 dic=self.loader_dictionary,
                 which="eul_riemann_cur",
                 which_loader="val",
                 in_dim=self.in_dim,
                 out_dim=self.out_dim,
                 masked_input=[1.0, 1.0, 1.0, 1.0],
+                data_path=path_to_data,
             )
-            val_dataset3 = _load_dataset(
+            val_dataset3 = load_dataset(
                 dic=self.loader_dictionary,
                 which="eul_gauss",
                 which_loader="val",
                 in_dim=self.in_dim,
                 out_dim=self.out_dim,
                 masked_input=[1.0, 1.0, 1.0, 1.0],
+                data_path=path_to_data,
             )
-            val_dataset4 = _load_dataset(
+            val_dataset4 = load_dataset(
                 dic=self.loader_dictionary,
                 which="eul_kh",
                 which_loader="val",
                 in_dim=self.in_dim,
                 out_dim=self.out_dim,
                 masked_input=[1.0, 1.0, 1.0, 1.0],
+                data_path=path_to_data,
             )
 
-            val_dataset5 = _load_dataset(
+            val_dataset5 = load_dataset(
                 dic=self.loader_dictionary,
                 which="ns_gauss",
                 which_loader="val",
                 in_dim=self.in_dim,
                 out_dim=self.out_dim,
                 masked_input=[1.0, 1.0, 1.0, 0.0],
+                data_path=path_to_data,
             )
-            val_dataset6 = _load_dataset(
+            val_dataset6 = load_dataset(
                 dic=self.loader_dictionary,
                 which="ns_sin",
                 which_loader="val",
                 in_dim=self.in_dim,
                 out_dim=self.out_dim,
                 masked_input=[1.0, 1.0, 1.0, 0.0],
+                data_path=path_to_data,
             )
 
             val_datasets = [
@@ -1526,13 +1558,14 @@ class CNO_time(pl.LightningModule):
             else:
                 mask = None
 
-            val_dataset = _load_dataset(
+            val_dataset = load_dataset(
                 dic=self.loader_dictionary,
                 which=which,
                 which_loader="val",
                 in_dim=self.in_dim,
                 out_dim=self.out_dim,
                 masked_input=mask,
+                data_path=path_to_data,
             )
             self.val_labels = [which + "_"]
             val_loaders = [

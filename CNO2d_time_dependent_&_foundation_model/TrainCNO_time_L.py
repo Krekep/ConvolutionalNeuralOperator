@@ -14,7 +14,7 @@ import sys
 import pandas as pd
 import torch
 
-if len(sys.argv) <= 3:
+if len(sys.argv) <= 4:
 
     training_properties = {
         "learning_rate": 0.00075,
@@ -63,7 +63,8 @@ if len(sys.argv) <= 3:
 
     # WHAT IS THE EXPERIMENT?
     which_example = sys.argv[1] if len(sys.argv) == 2 else "rich_mesh"
-    i = sys.argv[2] if len(sys.argv) == 3 else 1
+    path_to_data = sys.argv[2] if len(sys.argv) == 3 else "--- Provide data path ---"
+    i = sys.argv[3] if len(sys.argv) == 4 else 1
     folder = "TrainedModels/" + "Time_CNO_" + which_example + f"_{i}"
 
 else:
@@ -115,6 +116,7 @@ else:
 
 # loader_dict: INFORMATION ABOUT THE EXPERIMENT, TRAINING, etc -- VERY IMPORTANT!
 loader_dict["which"] = which_example
+loader_dict["data path"] = path_to_data
 loader_dict["time_input"] = training_properties["time_input"]
 loader_dict["cluster"] = training_properties["cluster"]
 loader_dict["num_samples"] = training_properties["training_samples"]
