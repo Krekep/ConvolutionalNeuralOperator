@@ -1,3 +1,4 @@
+black
 einops
 h5py
 jax
@@ -5,6 +6,7 @@ matplotlib
 netCDF4
 numpy
 pandas
+pre-commit
 pytorch-lightning
 scipy
 torch
