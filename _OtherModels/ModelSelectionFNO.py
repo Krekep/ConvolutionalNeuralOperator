@@ -18,7 +18,7 @@ all_training_properties = {
     "epochs": [750],
     "batch_size": [32],
     "exp": [1],
-    "training_samples": [750]
+    "training_samples": [750],
 }
 
 all_model_architecture = {
@@ -32,11 +32,9 @@ all_model_architecture = {
 }
 
 
-
 which_example = "shear_layer"
 
-ndic = {**all_training_properties,
-        **all_model_architecture}
+ndic = {**all_training_properties, **all_model_architecture}
 
 print(folder_name)
 if not os.path.isdir(folder_name):
@@ -50,20 +48,17 @@ for setup in settings:
     # time.sleep(10)
     print(setup)
 
-    folder_path = "\'" + folder_name +"/"+str(setup[7])+"Setup_" + str(i) + "\'"
-    
+    folder_path = "'" + folder_name + "/" + str(setup[7]) + "Setup_" + str(i) + "'"
 
     print(folder_path)
     print("###################################")
-    training_properties_ = {
-    }
+    training_properties_ = {}
     j = 0
     for k, key in enumerate(all_training_properties.keys()):
         training_properties_[key] = setup[j]
         j = j + 1
 
-    model_architecture_ = {
-    }
+    model_architecture_ = {}
     for k, key in enumerate(all_model_architecture.keys()):
         model_architecture_[key] = setup[j]
         j = j + 1
@@ -72,36 +67,36 @@ for setup in settings:
     arguments.append(folder_path)
     if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
         if sbatch:
-            arguments.append("\\\"" + str(training_properties_) + "\\\"")
+            arguments.append('\\"' + str(training_properties_) + '\\"')
         else:
-            arguments.append("\'" + str(training_properties_).replace("\'", "\"") + "\'")
+            arguments.append("'" + str(training_properties_).replace("'", '"') + "'")
 
     else:
-        arguments.append(str(training_properties_).replace("\'", "\""))
+        arguments.append(str(training_properties_).replace("'", '"'))
 
     if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
         if sbatch:
-            arguments.append("\\\"" + str(model_architecture_) + "\\\"")
+            arguments.append('\\"' + str(model_architecture_) + '\\"')
         else:
-            arguments.append("\'" + str(model_architecture_).replace("\'", "\"") + "\'")
+            arguments.append("'" + str(model_architecture_).replace("'", '"') + "'")
 
     else:
-        arguments.append(str(model_architecture_).replace("\'", "\""))
+        arguments.append(str(model_architecture_).replace("'", '"'))
 
     arguments.append(which_example)
 
     if sys.platform == "linux" or sys.platform == "linux2" or sys.platform == "darwin":
         if cluster == "true":
             if sbatch:
-                string_to_exec = "sbatch --time=3:00:00 -n 16 -G 1 --mem-per-cpu=256 --wrap=\"python3 TrainFNO.py"
+                string_to_exec = 'sbatch --time=3:00:00 -n 16 -G 1 --mem-per-cpu=256 --wrap="python3 TrainFNO.py'
             else:
-                string_to_exec = "bsub -W 16:00 -n 8 -R \'rusage[mem=2048]\' -R \'rusage[ngpus_excl_p=1]\' python3 TrainFNO.py"
+                string_to_exec = "bsub -W 16:00 -n 8 -R 'rusage[mem=2048]' -R 'rusage[ngpus_excl_p=1]' python3 TrainFNO.py"
         else:
             string_to_exec = "python3 TrainFNO.py "
         for arg in arguments:
             string_to_exec = string_to_exec + " " + arg
-        if cluster =="true" and sbatch:
-            string_to_exec = string_to_exec + " \""
+        if cluster == "true" and sbatch:
+            string_to_exec = string_to_exec + ' "'
         print(string_to_exec)
         os.system(string_to_exec)
     i = i + 1

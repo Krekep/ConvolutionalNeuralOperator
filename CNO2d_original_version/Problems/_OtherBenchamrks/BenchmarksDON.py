@@ -39,7 +39,9 @@ class NavierStokes_VIDON:
 
         torch.manual_seed(retrain)
 
-        training_inputs, training_outputs = self.get_data("data/data_32_32__Navier_Stokes/training_data_grid_time_5.hdf5", 1000)
+        training_inputs, training_outputs = self.get_data(
+            "data/data_32_32__Navier_Stokes/training_data_grid_time_5.hdf5", 1000
+        )
 
         testing_inputs = training_inputs[500:]
         testing_outputs = training_outputs[500:]
@@ -47,28 +49,53 @@ class NavierStokes_VIDON:
         training_inputs = training_inputs[:training_samples]
         training_outputs = training_outputs[:training_samples]
 
-        training_inputs, testing_inputs = self.normalize(training_inputs, testing_inputs)
-        training_outputs, testing_outputs = self.normalize(training_outputs, testing_outputs)
+        training_inputs, testing_inputs = self.normalize(
+            training_inputs, testing_inputs
+        )
+        training_outputs, testing_outputs = self.normalize(
+            training_outputs, testing_outputs
+        )
 
         branch_training_inputs = training_inputs[:, 0].unsqueeze(1)
         branch_testing_inputs = testing_inputs[:, 0].unsqueeze(1)
 
-        self.trunk_inputs = training_inputs[0, 1:].reshape(2 * self.N_Fourier_F, -1).permute(1, 0).to(device)
+        self.trunk_inputs = (
+            training_inputs[0, 1:]
+            .reshape(2 * self.N_Fourier_F, -1)
+            .permute(1, 0)
+            .to(device)
+        )
         # testing_inputs, testing_outputs = self.get_data("data/data_32_32__Navier_Stokes/validation_data_grid_time_5.hdf5", 32)
 
-        branch = ConvBranch2D(in_channels=1,  # Number of input channels.
-                              N_layers=N_layers,
-                              N_res=N_res,
-                              kernel_size=kernel_size,
-                              multiply=multiply,
-                              out_channel=basis).to(device)
+        branch = ConvBranch2D(
+            in_channels=1,  # Number of input channels.
+            N_layers=N_layers,
+            N_res=N_res,
+            kernel_size=kernel_size,
+            multiply=multiply,
+            out_channel=basis,
+        ).to(device)
 
-        trunk = FeedForwardNN(2 * self.N_Fourier_F, basis, layers=trunk_layers, neurons=trunk_neurons, retrain=retrain).to(device)
+        trunk = FeedForwardNN(
+            2 * self.N_Fourier_F,
+            basis,
+            layers=trunk_layers,
+            neurons=trunk_neurons,
+            retrain=retrain,
+        ).to(device)
 
         self.model = DeepOnetNoBiasOrg(branch, trunk).to(device)
 
-        self.train_loader = DataLoader(TensorDataset(branch_training_inputs, training_outputs), batch_size=batch_size, shuffle=True)
-        self.test_loader = DataLoader(TensorDataset(branch_testing_inputs, testing_outputs), batch_size=batch_size, shuffle=False)
+        self.train_loader = DataLoader(
+            TensorDataset(branch_training_inputs, training_outputs),
+            batch_size=batch_size,
+            shuffle=True,
+        )
+        self.test_loader = DataLoader(
+            TensorDataset(branch_testing_inputs, testing_outputs),
+            batch_size=batch_size,
+            shuffle=False,
+        )
 
     def normalize(self, data, data_t):
         M = max(torch.max(data).item(), torch.max(data_t).item())
@@ -96,14 +123,20 @@ class NavierStokes_VIDON:
                 s_in = "input_" + str(i)
                 s_out = "output_" + str(i)
 
-                input_data[i, :, :, 0] = torch.tensor(np.array(f[a_group_key[0]][s_in])).reshape(33, 33)
+                input_data[i, :, :, 0] = torch.tensor(
+                    np.array(f[a_group_key[0]][s_in])
+                ).reshape(33, 33)
 
                 if self.N_Fourier_F > 0:
                     input_data[i, :, :, 1:] = ff_grid
 
-                output_data[i, :, :, 0] = torch.tensor(np.array(f[a_group_key[1]][s_out])).reshape(33, 33)
+                output_data[i, :, :, 0] = torch.tensor(
+                    np.array(f[a_group_key[1]][s_out])
+                ).reshape(33, 33)
 
-            return torch.tensor(input_data).type(torch.float32).permute(0, 3, 1, 2), torch.tensor(output_data).type(torch.float32).permute(0, 3, 1, 2)
+            return torch.tensor(input_data).type(torch.float32).permute(
+                0, 3, 1, 2
+            ), torch.tensor(output_data).type(torch.float32).permute(0, 3, 1, 2)
 
     def get_grid(self):
         grid = torch.zeros((33, 33, 2))
@@ -120,11 +153,11 @@ import scipy
 
 
 def samples_fft(u):
-    return scipy.fft.fft2(u, norm='forward', workers=-1)
+    return scipy.fft.fft2(u, norm="forward", workers=-1)
 
 
 def samples_ifft(u_hat):
-    return scipy.fft.ifft2(u_hat, norm='forward', workers=-1).real
+    return scipy.fft.ifft2(u_hat, norm="forward", workers=-1).real
 
 
 def downsample(u, N):
@@ -143,7 +176,16 @@ from CNO_Processing.FourierFeatures import FourierFeatures
 
 
 class ShearLayer:
-    def __init__(self, network_properties, device, batch_size, training_samples, in_size=64, file="ddsl_N128/", cluster=False):
+    def __init__(
+        self,
+        network_properties,
+        device,
+        batch_size,
+        training_samples,
+        in_size=64,
+        file="ddsl_N128/",
+        cluster=False,
+    ):
 
         self.in_size = in_size
 
@@ -170,7 +212,9 @@ class ShearLayer:
 
         torch.manual_seed(retrain)
 
-        training_inputs, training_outputs = self.get_data("data/Euler_Shear/" + file, 1024, cluster)
+        training_inputs, training_outputs = self.get_data(
+            "data/Euler_Shear/" + file, 1024, cluster
+        )
 
         training_inputs = self.normalize(training_inputs)
         training_outputs = self.normalize(training_outputs)
@@ -183,22 +227,43 @@ class ShearLayer:
         branch_training_inputs = training_inputs[:, 0].unsqueeze(1)
         branch_testing_inputs = testing_inputs[:, 0].unsqueeze(1)
 
-        self.trunk_inputs = training_inputs[0, 1:].reshape(2 * self.N_Fourier_F, -1).permute(1, 0).to(device)
+        self.trunk_inputs = (
+            training_inputs[0, 1:]
+            .reshape(2 * self.N_Fourier_F, -1)
+            .permute(1, 0)
+            .to(device)
+        )
         # testing_inputs, testing_outputs = self.get_data("data/data_32_32__Navier_Stokes/validation_data_grid_time_5.hdf5", 32)
 
-        branch = ConvBranch2D(in_channels=1,  # Number of input channels.
-                              N_layers=N_layers,
-                              N_res=N_res,
-                              kernel_size=kernel_size,
-                              multiply=multiply,
-                              out_channel=basis).to(device)
+        branch = ConvBranch2D(
+            in_channels=1,  # Number of input channels.
+            N_layers=N_layers,
+            N_res=N_res,
+            kernel_size=kernel_size,
+            multiply=multiply,
+            out_channel=basis,
+        ).to(device)
 
-        trunk = FeedForwardNN(2 * self.N_Fourier_F, basis, layers=trunk_layers, neurons=trunk_neurons, retrain=retrain).to(device)
+        trunk = FeedForwardNN(
+            2 * self.N_Fourier_F,
+            basis,
+            layers=trunk_layers,
+            neurons=trunk_neurons,
+            retrain=retrain,
+        ).to(device)
 
         self.model = DeepOnetNoBiasOrg(branch, trunk).to(device)
 
-        self.train_loader = DataLoader(TensorDataset(branch_training_inputs, training_outputs), batch_size=batch_size, shuffle=True)
-        self.test_loader = DataLoader(TensorDataset(branch_testing_inputs, testing_outputs), batch_size=batch_size, shuffle=False)
+        self.train_loader = DataLoader(
+            TensorDataset(branch_training_inputs, training_outputs),
+            batch_size=batch_size,
+            shuffle=True,
+        )
+        self.test_loader = DataLoader(
+            TensorDataset(branch_testing_inputs, testing_outputs),
+            batch_size=batch_size,
+            shuffle=False,
+        )
 
     def normalize(self, data):
         m = torch.max(data)
@@ -207,7 +272,9 @@ class ShearLayer:
 
     def get_data(self, folder, n_samples, cluster):
 
-        input_data = np.zeros((n_samples, 1 + 2 * self.N_Fourier_F, self.in_size, self.in_size))
+        input_data = np.zeros(
+            (n_samples, 1 + 2 * self.N_Fourier_F, self.in_size, self.in_size)
+        )
         output_data = np.zeros((n_samples, 1, self.in_size, self.in_size))
 
         grid = self.get_grid()
@@ -230,24 +297,30 @@ class ShearLayer:
             file_input = folder + "sample_" + str(i) + "_time_0.nc"
             file_output = folder + "sample_" + str(i) + "_time_10.nc"
 
-            f = netCDF4.Dataset(file_input, 'r')
+            f = netCDF4.Dataset(file_input, "r")
             if self.in_size < 128:
-                input_data[i, 0] = downsample(np.array(f.variables['u'][:]).reshape(1, 1, 128, 128), self.in_size)
+                input_data[i, 0] = downsample(
+                    np.array(f.variables["u"][:]).reshape(1, 1, 128, 128), self.in_size
+                )
             else:
-                input_data[i, 0] = np.array(f.variables['u'][:])
+                input_data[i, 0] = np.array(f.variables["u"][:])
             f.close()
 
-            f = netCDF4.Dataset(file_output, 'r')
+            f = netCDF4.Dataset(file_output, "r")
             if self.in_size < 128:
-                output_data[i, 0] = downsample(np.array(f.variables['u'][:]).reshape(1, 1, 128, 128), self.in_size)
+                output_data[i, 0] = downsample(
+                    np.array(f.variables["u"][:]).reshape(1, 1, 128, 128), self.in_size
+                )
             else:
-                output_data[i, 0] = np.array(f.variables['u'][:])
+                output_data[i, 0] = np.array(f.variables["u"][:])
             f.close()
 
             if self.N_Fourier_F > 0:
                 input_data[i, 1:, :, :] = ff_grid
 
-        return torch.tensor(input_data).type(torch.float32), torch.tensor(output_data).type(torch.float32)
+        return torch.tensor(input_data).type(torch.float32), torch.tensor(
+            output_data
+        ).type(torch.float32)
 
     def get_grid(self):
 

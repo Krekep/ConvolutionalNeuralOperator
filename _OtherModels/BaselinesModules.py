@@ -10,7 +10,9 @@ class Resnet(nn.Module):
     Implements the physics-informed neural network.
     """
 
-    def __init__(self, input_dimension, output_dimension, n_hidden_layers, neurons, retrain):
+    def __init__(
+        self, input_dimension, output_dimension, n_hidden_layers, neurons, retrain
+    ):
         super(Resnet, self).__init__()
         self.input_dimension = input_dimension
         self.output_dimension = output_dimension
@@ -24,15 +26,24 @@ class Resnet(nn.Module):
         n_res_blocks = (self.n_hidden_layers - 1) // 2
         n_remaining_layers = (self.n_hidden_layers - 1) % 2
         self.residual_blocks = nn.ModuleList(
-            [ResidualBlock(self.neurons, self.act_string, self.retrain) for _ in range(n_res_blocks)])
+            [
+                ResidualBlock(self.neurons, self.act_string, self.retrain)
+                for _ in range(n_res_blocks)
+            ]
+        )
         if n_remaining_layers == 0:
             self.remaining_layers = None
             self.remaining_batch_layers = None
         else:
             self.remaining_layers = nn.ModuleList(
-                [nn.Linear(self.neurons, self.neurons) for _ in range(n_remaining_layers)])
+                [
+                    nn.Linear(self.neurons, self.neurons)
+                    for _ in range(n_remaining_layers)
+                ]
+            )
             self.remaining_batch_layers = nn.ModuleList(
-                [nn.BatchNorm1d(self.neurons) for _ in range(n_remaining_layers)])
+                [nn.BatchNorm1d(self.neurons) for _ in range(n_remaining_layers)]
+            )
 
         self.output_layer = nn.Linear(self.neurons, self.output_dimension)
         self.dropout = nn.Dropout(self.p)
@@ -52,6 +63,7 @@ class Resnet(nn.Module):
 
         x = self.output_layer(x)
         return x.reshape(batch_s, 1, res_x, res_y)
+
     def print_size(self):
         nparams = 0
         nbytes = 0
@@ -60,7 +72,9 @@ class Resnet(nn.Module):
             nparams += param.numel()
             nbytes += param.data.element_size() * param.numel()
 
-        print(f'Total number of model parameters: {nparams} (~{format_tensor_size(nbytes)})')
+        print(
+            f"Total number of model parameters: {nparams} (~{format_tensor_size(nbytes)})"
+        )
 
         return nparams
 
@@ -107,7 +121,7 @@ class DoubleConv(nn.Module):
             nn.ReLU(inplace=True),
             nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True)
+            nn.ReLU(inplace=True),
         )
 
     def forward(self, x):
@@ -120,8 +134,7 @@ class Down(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
         self.maxpool_conv = nn.Sequential(
-            nn.MaxPool2d(2),
-            DoubleConv(in_channels, out_channels)
+            nn.MaxPool2d(2), DoubleConv(in_channels, out_channels)
         )
 
     def forward(self, x):
@@ -136,10 +149,12 @@ class Up(nn.Module):
 
         # if bilinear, use the normal convolutions to reduce the number of channels
         if bilinear:
-            self.up = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+            self.up = nn.Upsample(scale_factor=2, mode="bilinear", align_corners=True)
             self.conv = DoubleConv(in_channels, out_channels, in_channels // 2)
         else:
-            self.up = nn.ConvTranspose2d(in_channels, in_channels // 2, kernel_size=2, stride=2)
+            self.up = nn.ConvTranspose2d(
+                in_channels, in_channels // 2, kernel_size=2, stride=2
+            )
             self.conv = DoubleConv(in_channels, out_channels)
 
     def forward(self, x1, x2):
@@ -148,8 +163,7 @@ class Up(nn.Module):
         diffY = x2.size()[2] - x1.size()[2]
         diffX = x2.size()[3] - x1.size()[3]
 
-        x1 = F.pad(x1, [diffX // 2, diffX - diffX // 2,
-                        diffY // 2, diffY - diffY // 2])
+        x1 = F.pad(x1, [diffX // 2, diffX - diffX // 2, diffY // 2, diffY - diffY // 2])
         # if you have padding issues, see
         # https://github.com/HaiyongJiang/U-Net-Pytorch-Unstructured-Buggy/commit/0e854509c2cea854e247a9c615f175f76fbb2e3a
         # https://github.com/xiaopeng-liao/Pytorch-UNet/commit/8ebac70e633bac59fc22bb5195e513d5832fb3bd
@@ -192,36 +206,52 @@ class UNet(nn.Module):
         self.outc = OutConv(start, n_classes)
 
     def forward(self, x):
-        if self.print: print(x.shape)
+        if self.print:
+            print(x.shape)
         x1 = self.inc(x)
-        if self.print: print(x1.shape)
+        if self.print:
+            print(x1.shape)
         x2 = self.down1(x1)
-        if self.print: print(x2.shape)
+        if self.print:
+            print(x2.shape)
         x3 = self.down2(x2)
-        if self.print: print(x3.shape)
+        if self.print:
+            print(x3.shape)
         x4 = self.down3(x3)
-        if self.print: print(x4.shape)
+        if self.print:
+            print(x4.shape)
         x5 = self.down4(x4)
-        if self.print: print(x5.shape)
+        if self.print:
+            print(x5.shape)
         x6 = self.down5(x5)
-        if self.print: print(x6.shape)
+        if self.print:
+            print(x6.shape)
         x7 = self.down6(x6)
-        if self.print: print(x7.shape)
+        if self.print:
+            print(x7.shape)
         x = self.up1(x7, x6)
-        if self.print: print(x.shape)
+        if self.print:
+            print(x.shape)
         x = self.up2(x, x5)
-        if self.print: print(x.shape)
+        if self.print:
+            print(x.shape)
         x = self.up3(x, x4)
-        if self.print: print(x.shape)
+        if self.print:
+            print(x.shape)
         x = self.up4(x, x3)
-        if self.print: print(x.shape)
+        if self.print:
+            print(x.shape)
         x = self.up5(x, x2)
-        if self.print: print(x.shape)
+        if self.print:
+            print(x.shape)
         x = self.up6(x, x1)
-        if self.print: print(x.shape)
+        if self.print:
+            print(x.shape)
         logits = self.outc(x)
-        if self.print: print(logits.shape)
-        if self.print: quit()
+        if self.print:
+            print(logits.shape)
+        if self.print:
+            quit()
         return logits
 
     def print_size(self):
@@ -232,10 +262,11 @@ class UNet(nn.Module):
             nparams += param.numel()
             nbytes += param.data.element_size() * param.numel()
 
-        print(f'Total number of model parameters: {nparams} (~{format_tensor_size(nbytes)})')
+        print(
+            f"Total number of model parameters: {nparams} (~{format_tensor_size(nbytes)})"
+        )
 
         return nparams
-
 
 
 class UNetOrg(nn.Module):
@@ -245,17 +276,17 @@ class UNetOrg(nn.Module):
         self.n_classes = n_classes
         self.bilinear = bilinear
 
-        self.inc = (DoubleConv(n_channels, channels))
-        self.down1 = (Down(channels, 2*channels))
-        self.down2 = (Down(2*channels, 4*channels))
-        self.down3 = (Down(4*channels, 8*channels))
+        self.inc = DoubleConv(n_channels, channels)
+        self.down1 = Down(channels, 2 * channels)
+        self.down2 = Down(2 * channels, 4 * channels)
+        self.down3 = Down(4 * channels, 8 * channels)
         factor = 2 if bilinear else 1
-        self.down4 = (Down(8*channels, 16*channels // factor))
-        self.up1 = (Up(16*channels, 8*channels // factor, bilinear))
-        self.up2 = (Up(8*channels, 4*channels // factor, bilinear))
-        self.up3 = (Up(4*channels, 2*channels // factor, bilinear))
-        self.up4 = (Up(2*channels, channels, bilinear))
-        self.outc = (OutConv(channels, n_classes))
+        self.down4 = Down(8 * channels, 16 * channels // factor)
+        self.up1 = Up(16 * channels, 8 * channels // factor, bilinear)
+        self.up2 = Up(8 * channels, 4 * channels // factor, bilinear)
+        self.up3 = Up(4 * channels, 2 * channels // factor, bilinear)
+        self.up4 = Up(2 * channels, channels, bilinear)
+        self.outc = OutConv(channels, n_classes)
 
     def forward(self, x):
         x1 = self.inc(x)
@@ -278,6 +309,8 @@ class UNetOrg(nn.Module):
             nparams += param.numel()
             nbytes += param.data.element_size() * param.numel()
 
-        print(f'Total number of model parameters: {nparams} (~{format_tensor_size(nbytes)})')
+        print(
+            f"Total number of model parameters: {nparams} (~{format_tensor_size(nbytes)})"
+        )
 
         return nparams

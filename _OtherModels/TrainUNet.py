@@ -24,13 +24,9 @@ if len(sys.argv) == 1:
         "exp": 1,
         "training_samples": 500,
     }
-    model_architecture_ = {
-        "FourierF": 2,
-        "retrain": 4,
-        "channels": 8
-    }
+    model_architecture_ = {"FourierF": 2, "retrain": 4, "channels": 8}
     # which_example = "darcy"
-    #which_example = "navier_stokes_vidon"
+    # which_example = "navier_stokes_vidon"
     # which_example = "shear_layer_rec_out"
     # which_example = "advection"
     which_example = "airfoil"
@@ -41,11 +37,11 @@ if len(sys.argv) == 1:
 
 else:
     folder = sys.argv[1]
-    training_properties = json.loads(sys.argv[2].replace("\'", "\""))
-    model_architecture_ = json.loads(sys.argv[3].replace("\'", "\""))
+    training_properties = json.loads(sys.argv[2].replace("'", '"'))
+    model_architecture_ = json.loads(sys.argv[3].replace("'", '"'))
     which_example = sys.argv[4]
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # device = 'cpu'
 writer = SummaryWriter(log_dir=folder)
 
@@ -67,9 +63,9 @@ if not os.path.isdir(folder):
     os.mkdir(folder)
 
 df = pd.DataFrame.from_dict([training_properties]).T
-df.to_csv(folder + '/training_properties.txt', header=False, index=True, mode='w')
+df.to_csv(folder + "/training_properties.txt", header=False, index=True, mode="w")
 df = pd.DataFrame.from_dict([model_architecture_]).T
-df.to_csv(folder + '/net_architecture.txt', header=False, index=True, mode='w')
+df.to_csv(folder + "/net_architecture.txt", header=False, index=True, mode="w")
 
 
 if which_example == "navier_stokes_vidon":
@@ -77,17 +73,49 @@ if which_example == "navier_stokes_vidon":
 elif which_example == "shear_layer":
     example = ShearLayer(model_architecture_, device, batch_size, 750)
 elif which_example == "poisson":
-    example = EquationModel(model_architecture_, device, batch_size, training_samples=1024, which_data="poisson")
+    example = EquationModel(
+        model_architecture_,
+        device,
+        batch_size,
+        training_samples=1024,
+        which_data="poisson",
+    )
 elif which_example == "wave":
-    example = EquationModel(model_architecture_, device, batch_size, training_samples=512, which_data="wave")
+    example = EquationModel(
+        model_architecture_, device, batch_size, training_samples=512, which_data="wave"
+    )
 elif which_example == "allen_cahn":
-    example = EquationModel(model_architecture_, device, batch_size, training_samples=256, which_data="allen_cahn")
+    example = EquationModel(
+        model_architecture_,
+        device,
+        batch_size,
+        training_samples=256,
+        which_data="allen_cahn",
+    )
 elif which_example == "cont_t":
-    example = EquationModel(model_architecture_, device, batch_size, training_samples=512, which_data="cont_t")
+    example = EquationModel(
+        model_architecture_,
+        device,
+        batch_size,
+        training_samples=512,
+        which_data="cont_t",
+    )
 elif which_example == "discont_t":
-    example = EquationModel(model_architecture_, device, batch_size, training_samples=512, which_data="discont_t")
+    example = EquationModel(
+        model_architecture_,
+        device,
+        batch_size,
+        training_samples=512,
+        which_data="discont_t",
+    )
 elif which_example == "airfoil":
-    example = EquationModel(model_architecture_, device, batch_size, training_samples=512, which_data="airfoil")
+    example = EquationModel(
+        model_architecture_,
+        device,
+        batch_size,
+        training_samples=512,
+        which_data="airfoil",
+    )
 
 else:
     raise ValueError()
@@ -99,8 +127,12 @@ test_loader = example.test_loader
 
 
 n_params = model.print_size()
-optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=scheduler_step, gamma=scheduler_gamma)
+optimizer = torch.optim.AdamW(
+    model.parameters(), lr=learning_rate, weight_decay=weight_decay
+)
+scheduler = torch.optim.lr_scheduler.StepLR(
+    optimizer, step_size=scheduler_step, gamma=scheduler_gamma
+)
 freq_print = 1
 if p == 1:
     loss = torch.nn.L1Loss()
@@ -126,12 +158,16 @@ for epoch in range(epochs):
                 output_pred_batch[input_batch == 1] = 1
                 output_batch[input_batch == 1] = 1
 
-            loss_f = loss(output_pred_batch, output_batch) / loss(torch.zeros_like(output_batch).to(device), output_batch)
+            loss_f = loss(output_pred_batch, output_batch) / loss(
+                torch.zeros_like(output_batch).to(device), output_batch
+            )
 
             loss_f.backward()
             optimizer.step()
             train_mse = train_mse * step / (step + 1) + loss_f.item() / (step + 1)
-            tepoch.set_postfix({'Batch': step + 1, 'Train loss (in progress)': train_mse})
+            tepoch.set_postfix(
+                {"Batch": step + 1, "Train loss (in progress)": train_mse}
+            )
 
         writer.add_scalar("train_loss/train_loss", train_mse, epoch)
 
@@ -147,7 +183,11 @@ for epoch in range(epochs):
                     output_pred_batch[input_batch == 1] = 1
                     output_batch[input_batch == 1] = 1
 
-                loss_f = torch.mean(abs(output_pred_batch - output_batch)) / torch.mean(abs(output_batch)) * 100
+                loss_f = (
+                    torch.mean(abs(output_pred_batch - output_batch))
+                    / torch.mean(abs(output_batch))
+                    * 100
+                )
                 test_relative_l2 += loss_f.item()
             test_relative_l2 /= len(test_loader)
 
@@ -157,15 +197,21 @@ for epoch in range(epochs):
                 best_model_testing_error = test_relative_l2
                 best_model = copy.deepcopy(model)
                 torch.save(best_model, folder + "/model.pkl")
-                writer.add_scalar("val_loss/Best Relative Testing Error", best_model_testing_error, epoch)
+                writer.add_scalar(
+                    "val_loss/Best Relative Testing Error",
+                    best_model_testing_error,
+                    epoch,
+                )
                 counter = 0
             else:
                 counter += 1
 
-        tepoch.set_postfix({'Train loss': train_mse, "Relative Val loss": test_relative_l2})
+        tepoch.set_postfix(
+            {"Train loss": train_mse, "Relative Val loss": test_relative_l2}
+        )
         tepoch.close()
 
-        with open(folder + '/errors.txt', 'w') as file:
+        with open(folder + "/errors.txt", "w") as file:
             file.write("Training Error: " + str(train_mse) + "\n")
             file.write("Best Testing Error: " + str(best_model_testing_error) + "\n")
             file.write("Current Epoch: " + str(epoch) + "\n")

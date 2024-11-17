@@ -9,9 +9,10 @@ import netCDF4 as nc
 from abc import ABC
 from typing import Optional
 
-#---------------------------------------------------
+# ---------------------------------------------------
 # All the datasets (21 of them) are available at: _
-#---------------------------------------------------
+# ---------------------------------------------------
+
 
 class BaseDataset(Dataset, ABC):
     """A base class for all datasets. Can be directly derived from if you have a steady/non-time dependent problem."""
@@ -24,7 +25,7 @@ class BaseDataset(Dataset, ABC):
         num_trajectories: Optional[int] = None,
         data_path: Optional[str] = "./data",
         time_input: Optional[bool] = True,
-        masked_input: Optional[list] = None
+        masked_input: Optional[list] = None,
     ) -> None:
         """
         Args:
@@ -38,25 +39,25 @@ class BaseDataset(Dataset, ABC):
         assert which in ["train", "val", "test"]
         assert resolution is not None and resolution > 0
         assert num_trajectories is not None and num_trajectories > 0
-        
-        #xprint(resolution, "RES")
+
+        # xprint(resolution, "RES")
         self.resolution = resolution
         self.in_dist = in_dist
         self.num_trajectories = num_trajectories
         self.data_path = data_path
         self.which = which
         self.time_input = time_input
-        
+
         self.masked_input = masked_input
         if self.masked_input is not None:
             self.mask = torch.tensor(self.masked_input, dtype=torch.float32)
-        
+
         if self.time_input:
             self.in_dim = 3
         else:
             self.in_dim = 2
         self.out_dim = 2
-        
+
     def post_init(self) -> None:
         """
         Call after self.N_max, self.N_val, self.N_test, as well as the file_paths and normalization constants are set.
@@ -78,8 +79,7 @@ class BaseDataset(Dataset, ABC):
         else:
             self.length = self.N_test
             self.start = self.N_max - self.N_test
-        
-        
+
     def __len__(self) -> int:
         """
         Returns: overall length of dataset.
@@ -98,7 +98,9 @@ class BaseDataset(Dataset, ABC):
         """
         pass
 
-#--------------------------------------------------------
+
+# --------------------------------------------------------
+
 
 class BaseTimeDataset(BaseDataset, ABC):
     """A base class for time dependent problems. Inherit time-dependent problems from here."""
@@ -127,7 +129,7 @@ class BaseTimeDataset(BaseDataset, ABC):
         self.time_step_size = time_step_size
         self.fix_input_to_time_step = fix_input_to_time_step
         self.allowed_transitions = allowed_transitions
-        
+
     def post_init(self) -> None:
         """
         Call after self.N_max, self.N_val, self.N_test, as well as the file_paths and normalization constants are set.
@@ -150,23 +152,27 @@ class BaseTimeDataset(BaseDataset, ABC):
             )
 
             self.multiplier = self.max_num_time_steps
-            #print(self.multiplier, "MULTI")
+            # print(self.multiplier, "MULTI")
         else:
             if self.allowed_transitions is None:
                 self.time_indices = []
                 i = 0
                 for j in range(i, self.max_num_time_steps + 1):
-                    self.time_indices.append((self.time_step_size * i, self.time_step_size * j))
+                    self.time_indices.append(
+                        (self.time_step_size * i, self.time_step_size * j)
+                    )
             else:
                 self.time_indices = []
-                for i in range(self.max_num_time_steps+1):
+                for i in range(self.max_num_time_steps + 1):
                     for j in range(i, self.max_num_time_steps + 1):
-                        if (j-i) in self.allowed_transitions:
-                            self.time_indices.append((self.time_step_size * i, self.time_step_size * j))
-            
+                        if (j - i) in self.allowed_transitions:
+                            self.time_indices.append(
+                                (self.time_step_size * i, self.time_step_size * j)
+                            )
+
             self.multiplier = len(self.time_indices)
             print("time_indices", self.time_indices)
-        
+
         if self.which == "train":
             self.length = self.num_trajectories * self.multiplier
             self.start = 0
@@ -177,9 +183,11 @@ class BaseTimeDataset(BaseDataset, ABC):
             self.length = self.N_test * self.multiplier
             self.start = self.N_max - self.N_test
 
-#--------------------------------------------------------
+
+# --------------------------------------------------------
 # Navier-Stokes Datasets:
-#--------------------------------------------------------
+# --------------------------------------------------------
+
 
 class BrownianBridgeTimeDataset(BaseTimeDataset):
     def __init__(self, *args, **kwargs):
@@ -198,12 +206,25 @@ class BrownianBridgeTimeDataset(BaseTimeDataset):
         self.reader = h5py.File(data_path, "r")
 
         if self.masked_input is None:
-            self.mean = torch.tensor([0.0, 0.0], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-            self.std = torch.tensor([0.391, 0.356], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
+            self.mean = (
+                torch.tensor([0.0, 0.0], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
+            )
+            self.std = (
+                torch.tensor([0.391, 0.356], dtype=torch.float32)
+                .unsqueeze(1)
+                .unsqueeze(1)
+            )
         else:
-            self.mean = torch.tensor([0.80, 0.0,   0.0,   0.0], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-            self.std = torch.tensor( [0.31, 0.391, 0.356, 0.46], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-        
+            self.mean = (
+                torch.tensor([0.80, 0.0, 0.0, 0.0], dtype=torch.float32)
+                .unsqueeze(1)
+                .unsqueeze(1)
+            )
+            self.std = (
+                torch.tensor([0.31, 0.391, 0.356, 0.46], dtype=torch.float32)
+                .unsqueeze(1)
+                .unsqueeze(1)
+            )
 
         self.post_init()
 
@@ -220,8 +241,7 @@ class BrownianBridgeTimeDataset(BaseTimeDataset):
             t2 = self.time_step_size * (_idx + 1)
             t = t2 - t1
         time = t / 20.0
-        
-        
+
         inputs = (
             torch.from_numpy(self.reader["sample_" + str(i + self.start)][:][t1])
             .type(torch.float32)
@@ -232,29 +252,38 @@ class BrownianBridgeTimeDataset(BaseTimeDataset):
             .type(torch.float32)
             .reshape(2, self.resolution, self.resolution)
         )
-        
+
         if self.masked_input is not None:
-            inputs_rho = torch.ones((1, self.resolution, self.resolution)).type(torch.float32)
-            inputs_p   = torch.zeros((1, self.resolution, self.resolution)).type(torch.float32)
+            inputs_rho = torch.ones((1, self.resolution, self.resolution)).type(
+                torch.float32
+            )
+            inputs_p = torch.zeros((1, self.resolution, self.resolution)).type(
+                torch.float32
+            )
             inputs = torch.cat((inputs_rho, inputs), 0)
             inputs = torch.cat((inputs, inputs_p), 0)
-            
+
             label = torch.cat((inputs_rho, label), 0)
             label = torch.cat((label, inputs_p), 0)
-        
+
         inputs = (inputs - self.mean) / self.std
         label = (label - self.mean) / self.std
 
         if self.time_input:
-            inputs_t = torch.ones(1, self.resolution, self.resolution).type(torch.float32)*time
+            inputs_t = (
+                torch.ones(1, self.resolution, self.resolution).type(torch.float32)
+                * time
+            )
             inputs = torch.cat((inputs, inputs_t), 0)
-        
+
         if self.masked_input is not None:
             return time, inputs, label, self.mask
         else:
             return time, inputs, label
 
-#--------------------------------------------------------
+
+# --------------------------------------------------------
+
 
 class VortexSheetTimeDataset(BaseTimeDataset):
     def __init__(self, *args, **kwargs):
@@ -273,12 +302,25 @@ class VortexSheetTimeDataset(BaseTimeDataset):
         self.reader = h5py.File(data_path, "r")
 
         if self.masked_input is None:
-            self.mean = torch.tensor([0.0, 0.0], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-            self.std = torch.tensor([0.391, 0.356], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
+            self.mean = (
+                torch.tensor([0.0, 0.0], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
+            )
+            self.std = (
+                torch.tensor([0.391, 0.356], dtype=torch.float32)
+                .unsqueeze(1)
+                .unsqueeze(1)
+            )
         else:
-            self.mean = torch.tensor([0.80, 0.0,   0.0,   0.0], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-            self.std = torch.tensor( [0.31, 0.391, 0.356, 0.46], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-        
+            self.mean = (
+                torch.tensor([0.80, 0.0, 0.0, 0.0], dtype=torch.float32)
+                .unsqueeze(1)
+                .unsqueeze(1)
+            )
+            self.std = (
+                torch.tensor([0.31, 0.391, 0.356, 0.46], dtype=torch.float32)
+                .unsqueeze(1)
+                .unsqueeze(1)
+            )
 
         self.post_init()
 
@@ -295,7 +337,7 @@ class VortexSheetTimeDataset(BaseTimeDataset):
             t2 = self.time_step_size * (_idx + 1)
             t = t2 - t1
         time = t / 20.0
-        
+
         inputs = (
             torch.from_numpy(self.reader["sample_" + str(i + self.start)][:][t1])
             .type(torch.float32)
@@ -306,29 +348,38 @@ class VortexSheetTimeDataset(BaseTimeDataset):
             .type(torch.float32)
             .reshape(2, self.resolution, self.resolution)
         )
-        
+
         if self.masked_input is not None:
-            inputs_rho = torch.ones((1, self.resolution, self.resolution)).type(torch.float32)
-            inputs_p   = torch.zeros((1, self.resolution, self.resolution)).type(torch.float32)
+            inputs_rho = torch.ones((1, self.resolution, self.resolution)).type(
+                torch.float32
+            )
+            inputs_p = torch.zeros((1, self.resolution, self.resolution)).type(
+                torch.float32
+            )
             inputs = torch.cat((inputs_rho, inputs), 0)
             inputs = torch.cat((inputs, inputs_p), 0)
-            
+
             label = torch.cat((inputs_rho, label), 0)
             label = torch.cat((label, inputs_p), 0)
-        
+
         inputs = (inputs - self.mean) / self.std
         label = (label - self.mean) / self.std
 
         if self.time_input:
-            inputs_t = torch.ones(1, self.resolution, self.resolution).type(torch.float32)*time
+            inputs_t = (
+                torch.ones(1, self.resolution, self.resolution).type(torch.float32)
+                * time
+            )
             inputs = torch.cat((inputs, inputs_t), 0)
-        
+
         if self.masked_input is not None:
             return time, inputs, label, self.mask
         else:
             return time, inputs, label
 
-#--------------------------------------------------------
+
+# --------------------------------------------------------
+
 
 class SinesTimeDataset(BaseTimeDataset):
     def __init__(self, *args, **kwargs):
@@ -347,12 +398,25 @@ class SinesTimeDataset(BaseTimeDataset):
         self.reader = h5py.File(data_path, "r")
 
         if self.masked_input is None:
-            self.mean = torch.tensor([0.0, 0.0], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-            self.std = torch.tensor([0.391, 0.356], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
+            self.mean = (
+                torch.tensor([0.0, 0.0], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
+            )
+            self.std = (
+                torch.tensor([0.391, 0.356], dtype=torch.float32)
+                .unsqueeze(1)
+                .unsqueeze(1)
+            )
         else:
-            self.mean = torch.tensor([0.80, 0.0,   0.0,   0.0], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-            self.std = torch.tensor( [0.31, 0.391, 0.356, 0.46], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-        
+            self.mean = (
+                torch.tensor([0.80, 0.0, 0.0, 0.0], dtype=torch.float32)
+                .unsqueeze(1)
+                .unsqueeze(1)
+            )
+            self.std = (
+                torch.tensor([0.31, 0.391, 0.356, 0.46], dtype=torch.float32)
+                .unsqueeze(1)
+                .unsqueeze(1)
+            )
 
         self.post_init()
 
@@ -380,29 +444,38 @@ class SinesTimeDataset(BaseTimeDataset):
             .type(torch.float32)
             .reshape(2, self.resolution, self.resolution)
         )
-        
+
         if self.masked_input is not None:
-            inputs_rho = torch.ones((1, self.resolution, self.resolution)).type(torch.float32)
-            inputs_p   = torch.zeros((1, self.resolution, self.resolution)).type(torch.float32)
+            inputs_rho = torch.ones((1, self.resolution, self.resolution)).type(
+                torch.float32
+            )
+            inputs_p = torch.zeros((1, self.resolution, self.resolution)).type(
+                torch.float32
+            )
             inputs = torch.cat((inputs_rho, inputs), 0)
             inputs = torch.cat((inputs, inputs_p), 0)
-            
+
             label = torch.cat((inputs_rho, label), 0)
             label = torch.cat((label, inputs_p), 0)
-        
+
         inputs = (inputs - self.mean) / self.std
         label = (label - self.mean) / self.std
 
         if self.time_input:
-            inputs_t = torch.ones(1, self.resolution, self.resolution).type(torch.float32)*time
+            inputs_t = (
+                torch.ones(1, self.resolution, self.resolution).type(torch.float32)
+                * time
+            )
             inputs = torch.cat((inputs, inputs_t), 0)
-        
+
         if self.masked_input is not None:
             return time, inputs, label, self.mask
         else:
             return time, inputs, label
 
-#--------------------------------------------------------
+
+# --------------------------------------------------------
+
 
 class PiecewiseConstantsTimeDataset(BaseTimeDataset):
     def __init__(self, *args, **kwargs):
@@ -419,14 +492,28 @@ class PiecewiseConstantsTimeDataset(BaseTimeDataset):
             raise NotImplementedError()
 
         self.reader = h5py.File(data_path, "r")
-        
+
         if self.masked_input is None:
-            self.mean = torch.tensor([0.0, 0.0], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-            self.std = torch.tensor([0.391, 0.356], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
+            self.mean = (
+                torch.tensor([0.0, 0.0], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
+            )
+            self.std = (
+                torch.tensor([0.391, 0.356], dtype=torch.float32)
+                .unsqueeze(1)
+                .unsqueeze(1)
+            )
         else:
-            self.mean = torch.tensor([0.80, 0.0,   0.0,   0.0], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-            self.std = torch.tensor( [0.31, 0.391, 0.356, 0.46], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-        
+            self.mean = (
+                torch.tensor([0.80, 0.0, 0.0, 0.0], dtype=torch.float32)
+                .unsqueeze(1)
+                .unsqueeze(1)
+            )
+            self.std = (
+                torch.tensor([0.31, 0.391, 0.356, 0.46], dtype=torch.float32)
+                .unsqueeze(1)
+                .unsqueeze(1)
+            )
+
         self.post_init()
 
     def __getitem__(self, idx):
@@ -453,29 +540,38 @@ class PiecewiseConstantsTimeDataset(BaseTimeDataset):
             .type(torch.float32)
             .reshape(2, self.resolution, self.resolution)
         )
-        
+
         if self.masked_input is not None:
-            inputs_rho = torch.ones((1, self.resolution, self.resolution)).type(torch.float32)
-            inputs_p   = torch.zeros((1, self.resolution, self.resolution)).type(torch.float32)
+            inputs_rho = torch.ones((1, self.resolution, self.resolution)).type(
+                torch.float32
+            )
+            inputs_p = torch.zeros((1, self.resolution, self.resolution)).type(
+                torch.float32
+            )
             inputs = torch.cat((inputs_rho, inputs), 0)
             inputs = torch.cat((inputs, inputs_p), 0)
-            
+
             label = torch.cat((inputs_rho, label), 0)
             label = torch.cat((label, inputs_p), 0)
-        
+
         inputs = (inputs - self.mean) / self.std
         label = (label - self.mean) / self.std
 
         if self.time_input:
-            inputs_t = torch.ones(1, self.resolution, self.resolution).type(torch.float32)*time
+            inputs_t = (
+                torch.ones(1, self.resolution, self.resolution).type(torch.float32)
+                * time
+            )
             inputs = torch.cat((inputs, inputs_t), 0)
-        
+
         if self.masked_input is not None:
             return time, inputs, label, self.mask
         else:
             return time, inputs, label
 
-#--------------------------------------------------------
+
+# --------------------------------------------------------
+
 
 class GaussiansTimeDataset(BaseTimeDataset):
     def __init__(self, *args, **kwargs):
@@ -492,14 +588,28 @@ class GaussiansTimeDataset(BaseTimeDataset):
             raise NotImplementedError()
 
         self.reader = h5py.File(data_path, "r")
-        
+
         if self.masked_input is None:
-            self.mean = torch.tensor([0.0, 0.0], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-            self.std = torch.tensor([0.391, 0.356], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
+            self.mean = (
+                torch.tensor([0.0, 0.0], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
+            )
+            self.std = (
+                torch.tensor([0.391, 0.356], dtype=torch.float32)
+                .unsqueeze(1)
+                .unsqueeze(1)
+            )
         else:
-            self.mean = torch.tensor([0.80, 0.0,   0.0,   0.0], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-            self.std = torch.tensor( [0.31, 0.391, 0.356, 0.46], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-        
+            self.mean = (
+                torch.tensor([0.80, 0.0, 0.0, 0.0], dtype=torch.float32)
+                .unsqueeze(1)
+                .unsqueeze(1)
+            )
+            self.std = (
+                torch.tensor([0.31, 0.391, 0.356, 0.46], dtype=torch.float32)
+                .unsqueeze(1)
+                .unsqueeze(1)
+            )
+
         self.post_init()
 
     def __getitem__(self, idx):
@@ -515,41 +625,48 @@ class GaussiansTimeDataset(BaseTimeDataset):
             t2 = self.time_step_size * (_idx + 1)
             t = t2 - t1
         time = t / 20.0
-        
-        
-        inputs = (
-            torch.from_numpy(self.reader["sample_" + str(i + self.start)][:][t1])
-            .reshape(2, self.resolution, self.resolution)
-        )
-        
+
+        inputs = torch.from_numpy(
+            self.reader["sample_" + str(i + self.start)][:][t1]
+        ).reshape(2, self.resolution, self.resolution)
+
         label = (
             torch.from_numpy(self.reader["sample_" + str(i + self.start)][:][t2])
             .type(torch.float32)
             .reshape(2, self.resolution, self.resolution)
         )
-        
+
         if self.masked_input is not None:
-            inputs_rho = torch.ones((1, self.resolution, self.resolution)).type(torch.float32)
-            inputs_p   = torch.zeros((1, self.resolution, self.resolution)).type(torch.float32)
+            inputs_rho = torch.ones((1, self.resolution, self.resolution)).type(
+                torch.float32
+            )
+            inputs_p = torch.zeros((1, self.resolution, self.resolution)).type(
+                torch.float32
+            )
             inputs = torch.cat((inputs_rho, inputs), 0)
             inputs = torch.cat((inputs, inputs_p), 0)
-            
+
             label = torch.cat((inputs_rho, label), 0)
             label = torch.cat((label, inputs_p), 0)
-        
+
         inputs = (inputs - self.mean) / self.std
         label = (label - self.mean) / self.std
 
         if self.time_input:
-            inputs_t = torch.ones(1, self.resolution, self.resolution).type(torch.float32)*time
+            inputs_t = (
+                torch.ones(1, self.resolution, self.resolution).type(torch.float32)
+                * time
+            )
             inputs = torch.cat((inputs, inputs_t), 0)
-        
+
         if self.masked_input is not None:
             return time, inputs, label, self.mask
         else:
             return time, inputs, label
-    
-#--------------------------------------------------------
+
+
+# --------------------------------------------------------
+
 
 class ComplicatedShearLayerTimeDataset(BaseTimeDataset):
     def __init__(self, *args, **kwargs):
@@ -576,18 +693,32 @@ class ComplicatedShearLayerTimeDataset(BaseTimeDataset):
         self.reader = [reader_1, reader_2, reader_3, reader_4]
 
         if self.masked_input is None:
-            self.mean = torch.tensor([0.0, 0.0], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-            self.std = torch.tensor([0.391, 0.356], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
+            self.mean = (
+                torch.tensor([0.0, 0.0], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
+            )
+            self.std = (
+                torch.tensor([0.391, 0.356], dtype=torch.float32)
+                .unsqueeze(1)
+                .unsqueeze(1)
+            )
         else:
-            self.mean = torch.tensor([0.80, 0.0,   0.0,   0.0], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-            self.std = torch.tensor( [0.31, 0.391, 0.356, 0.46], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-        
+            self.mean = (
+                torch.tensor([0.80, 0.0, 0.0, 0.0], dtype=torch.float32)
+                .unsqueeze(1)
+                .unsqueeze(1)
+            )
+            self.std = (
+                torch.tensor([0.31, 0.391, 0.356, 0.46], dtype=torch.float32)
+                .unsqueeze(1)
+                .unsqueeze(1)
+            )
+
         self.post_init()
 
     def __getitem__(self, idx):
         i = idx // self.multiplier
         _idx = idx - i * self.multiplier
-        
+
         if self.fix_input_to_time_step is None:
             t1, t2 = self.time_indices[_idx]
             assert t2 >= t1
@@ -597,24 +728,29 @@ class ComplicatedShearLayerTimeDataset(BaseTimeDataset):
             t2 = self.time_step_size * (_idx + 1)
             t = t2 - t1
         time = t / 20.0
-        
-        #---------------------------
+
+        # ---------------------------
         if self.resolution == 128:
             i_fix = i + 10000
         else:
             i_fix = i
-        
+
         if self.which == "train":
             which_reader = i // 10000
         else:
             which_reader = 3
-        #---------------------------
-        
-        axes = (0,2,1)
-        
+        # ---------------------------
+
+        axes = (0, 2, 1)
+
         inputs = (
             torch.from_numpy(
-                np.transpose(self.reader[which_reader]["sample_" + str(i_fix + self.start)][:][t1], axes = axes)
+                np.transpose(
+                    self.reader[which_reader]["sample_" + str(i_fix + self.start)][:][
+                        t1
+                    ],
+                    axes=axes,
+                )
             )
             .type(torch.float32)
             .reshape(2, self.resolution, self.resolution)
@@ -622,36 +758,50 @@ class ComplicatedShearLayerTimeDataset(BaseTimeDataset):
 
         label = (
             torch.from_numpy(
-                np.transpose(self.reader[which_reader]["sample_" + str(i_fix + self.start)][:][t2], axes = axes)
+                np.transpose(
+                    self.reader[which_reader]["sample_" + str(i_fix + self.start)][:][
+                        t2
+                    ],
+                    axes=axes,
+                )
             )
             .type(torch.float32)
             .reshape(2, self.resolution, self.resolution)
         )
 
         if self.masked_input is not None:
-            inputs_rho = torch.ones((1, self.resolution, self.resolution)).type(torch.float32)
-            inputs_p   = torch.zeros((1, self.resolution, self.resolution)).type(torch.float32)
+            inputs_rho = torch.ones((1, self.resolution, self.resolution)).type(
+                torch.float32
+            )
+            inputs_p = torch.zeros((1, self.resolution, self.resolution)).type(
+                torch.float32
+            )
             inputs = torch.cat((inputs_rho, inputs), 0)
             inputs = torch.cat((inputs, inputs_p), 0)
-            
+
             label = torch.cat((inputs_rho, label), 0)
             label = torch.cat((label, inputs_p), 0)
-        
+
         inputs = (inputs - self.mean) / self.std
         label = (label - self.mean) / self.std
 
         if self.time_input:
-            inputs_t = torch.ones(1, self.resolution, self.resolution).type(torch.float32)*time
+            inputs_t = (
+                torch.ones(1, self.resolution, self.resolution).type(torch.float32)
+                * time
+            )
             inputs = torch.cat((inputs, inputs_t), 0)
-        
+
         if self.masked_input is not None:
             return time, inputs, label, self.mask
         else:
             return time, inputs, label
-    
-#--------------------------------------------------------
+
+
+# --------------------------------------------------------
 # Compressible Euler Datasets:
-#--------------------------------------------------------
+# --------------------------------------------------------
+
 
 class KelvinHelmholtzTimeDataset(BaseTimeDataset):
     def __init__(self, *args, **kwargs):
@@ -663,15 +813,23 @@ class KelvinHelmholtzTimeDataset(BaseTimeDataset):
         self.N_test = 240
 
         if self.in_dist:
-            data_path = self.data_path + '/kh.nc'
+            data_path = self.data_path + "/kh.nc"
         else:
             raise NotImplementedError()
 
         self.reader = h5py.File(data_path, "r")
-        
-        self.mean = torch.tensor([0.80, 0.0,   0.0,   1.0], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-        self.std = torch.tensor( [0.31, 0.391, 0.356, 0.185], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-        
+
+        self.mean = (
+            torch.tensor([0.80, 0.0, 0.0, 1.0], dtype=torch.float32)
+            .unsqueeze(1)
+            .unsqueeze(1)
+        )
+        self.std = (
+            torch.tensor([0.31, 0.391, 0.356, 0.185], dtype=torch.float32)
+            .unsqueeze(1)
+            .unsqueeze(1)
+        )
+
         self.post_init()
 
     def __getitem__(self, idx):
@@ -687,32 +845,36 @@ class KelvinHelmholtzTimeDataset(BaseTimeDataset):
             t2 = self.time_step_size * (_idx + 1)
             t = t2 - t1
         time = t / 20.0
-        
-        
+
         inputs = (
-            torch.tensor(self.reader[i + self.start,t1,:4])
+            torch.tensor(self.reader[i + self.start, t1, :4])
             .type(torch.float32)
             .reshape(4, self.resolution, self.resolution)
         )
         label = (
-            torch.tensor(self.reader[i + self.start,t2,:4])
+            torch.tensor(self.reader[i + self.start, t2, :4])
             .type(torch.float32)
             .reshape(4, self.resolution, self.resolution)
         )
-        
+
         inputs = (inputs - self.mean) / self.std
-        label = (label-self.mean) / self.std
+        label = (label - self.mean) / self.std
 
         if self.time_input:
-            inputs_t = torch.ones(1, self.resolution, self.resolution).type(torch.float32)*time
+            inputs_t = (
+                torch.ones(1, self.resolution, self.resolution).type(torch.float32)
+                * time
+            )
             inputs = torch.cat((inputs, inputs_t), 0)
-        
+
         if self.masked_input is not None:
             return time, inputs, label, self.mask
         else:
             return time, inputs, label
-    
-#--------------------------------------------------------
+
+
+# --------------------------------------------------------
+
 
 class RiemannTimeDataset(BaseTimeDataset):
     def __init__(self, *args, **kwargs):
@@ -724,14 +886,22 @@ class RiemannTimeDataset(BaseTimeDataset):
         self.N_test = 240
 
         if self.in_dist:
-            data_path = self.data_path + '/riemann.nc'
+            data_path = self.data_path + "/riemann.nc"
         else:
             raise NotImplementedError()
 
         self.reader = h5py.File(data_path, "r")
 
-        self.mean = torch.tensor([0.80, 0.0,   0.0,   0.215], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-        self.std = torch.tensor( [0.31, 0.391, 0.356, 0.185],  dtype=torch.float32).unsqueeze(1).unsqueeze(1)
+        self.mean = (
+            torch.tensor([0.80, 0.0, 0.0, 0.215], dtype=torch.float32)
+            .unsqueeze(1)
+            .unsqueeze(1)
+        )
+        self.std = (
+            torch.tensor([0.31, 0.391, 0.356, 0.185], dtype=torch.float32)
+            .unsqueeze(1)
+            .unsqueeze(1)
+        )
         self.post_init()
 
     def __getitem__(self, idx):
@@ -747,32 +917,36 @@ class RiemannTimeDataset(BaseTimeDataset):
             t2 = self.time_step_size * (_idx + 1)
             t = t2 - t1
         time = t / 20.0
-        
-        
+
         inputs = (
-            torch.tensor(self.reader[i + self.start,t1,:4])
+            torch.tensor(self.reader[i + self.start, t1, :4])
             .type(torch.float32)
             .reshape(4, self.resolution, self.resolution)
         )
         label = (
-            torch.tensor(self.reader[i + self.start,t2,:4])
+            torch.tensor(self.reader[i + self.start, t2, :4])
             .type(torch.float32)
             .reshape(4, self.resolution, self.resolution)
         )
-        
+
         inputs = (inputs - self.mean) / self.std
-        label = (label-self.mean) / self.std
+        label = (label - self.mean) / self.std
 
         if self.time_input:
-            inputs_t = torch.ones(1, self.resolution, self.resolution).type(torch.float32)*time
+            inputs_t = (
+                torch.ones(1, self.resolution, self.resolution).type(torch.float32)
+                * time
+            )
             inputs = torch.cat((inputs, inputs_t), 0)
-        
+
         if self.masked_input is not None:
             return time, inputs, label, self.mask
         else:
             return time, inputs, label
-    
-#--------------------------------------------------------
+
+
+# --------------------------------------------------------
+
 
 class RiemannCurvedTimeDataset(BaseTimeDataset):
     def __init__(self, *args, **kwargs):
@@ -784,14 +958,22 @@ class RiemannCurvedTimeDataset(BaseTimeDataset):
         self.N_test = 240
 
         if self.in_dist:
-            data_path = self.data_path + '/riemann_curved.nc'
+            data_path = self.data_path + "/riemann_curved.nc"
         else:
             raise NotImplementedError()
 
         self.reader = h5py.File(data_path, "r")
 
-        self.mean = torch.tensor([0.80, 0.0,   0.0,   0.553], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-        self.std = torch.tensor( [0.31, 0.391, 0.356, 0.185],  dtype=torch.float32).unsqueeze(1).unsqueeze(1)
+        self.mean = (
+            torch.tensor([0.80, 0.0, 0.0, 0.553], dtype=torch.float32)
+            .unsqueeze(1)
+            .unsqueeze(1)
+        )
+        self.std = (
+            torch.tensor([0.31, 0.391, 0.356, 0.185], dtype=torch.float32)
+            .unsqueeze(1)
+            .unsqueeze(1)
+        )
 
         self.post_init()
 
@@ -808,32 +990,36 @@ class RiemannCurvedTimeDataset(BaseTimeDataset):
             t2 = self.time_step_size * (_idx + 1)
             t = t2 - t1
         time = t / 20.0
-        
-        
+
         inputs = (
-            torch.tensor(self.reader[i + self.start,t1,:4])
+            torch.tensor(self.reader[i + self.start, t1, :4])
             .type(torch.float32)
             .reshape(4, self.resolution, self.resolution)
         )
         label = (
-            torch.tensor(self.reader[i + self.start,t2,:4])
+            torch.tensor(self.reader[i + self.start, t2, :4])
             .type(torch.float32)
             .reshape(4, self.resolution, self.resolution)
         )
-        
+
         inputs = (inputs - self.mean) / self.std
-        label = (label-self.mean) / self.std
+        label = (label - self.mean) / self.std
 
         if self.time_input:
-            inputs_t = torch.ones(1, self.resolution, self.resolution).type(torch.float32)*time
+            inputs_t = (
+                torch.ones(1, self.resolution, self.resolution).type(torch.float32)
+                * time
+            )
             inputs = torch.cat((inputs, inputs_t), 0)
-        
+
         if self.masked_input is not None:
             return time, inputs, label, self.mask
         else:
             return time, inputs, label
 
-#--------------------------------------------------------
+
+# --------------------------------------------------------
+
 
 class EulerGaussTimeDataset(BaseTimeDataset):
     def __init__(self, *args, **kwargs):
@@ -845,15 +1031,23 @@ class EulerGaussTimeDataset(BaseTimeDataset):
         self.N_test = 240
 
         if self.in_dist:
-            data_path = self.data_path + '/gauss.nc'
+            data_path = self.data_path + "/gauss.nc"
         else:
             raise NotImplementedError()
 
         self.reader = h5py.File(data_path, "r")
-        
-        self.mean = torch.tensor([0.80, 0.0,   0.0,   2.513], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-        self.std = torch.tensor( [0.31, 0.391, 0.356, 0.185], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-        
+
+        self.mean = (
+            torch.tensor([0.80, 0.0, 0.0, 2.513], dtype=torch.float32)
+            .unsqueeze(1)
+            .unsqueeze(1)
+        )
+        self.std = (
+            torch.tensor([0.31, 0.391, 0.356, 0.185], dtype=torch.float32)
+            .unsqueeze(1)
+            .unsqueeze(1)
+        )
+
         self.post_init()
 
     def __getitem__(self, idx):
@@ -869,32 +1063,36 @@ class EulerGaussTimeDataset(BaseTimeDataset):
             t2 = self.time_step_size * (_idx + 1)
             t = t2 - t1
         time = t / 20.0
-        
-        
+
         inputs = (
-            torch.tensor(self.reader[i + self.start,t1,:4])
+            torch.tensor(self.reader[i + self.start, t1, :4])
             .type(torch.float32)
             .reshape(4, self.resolution, self.resolution)
         )
         label = (
-            torch.tensor(self.reader[i + self.start,t2,:4])
+            torch.tensor(self.reader[i + self.start, t2, :4])
             .type(torch.float32)
             .reshape(4, self.resolution, self.resolution)
         )
-        
+
         inputs = (inputs - self.mean) / self.std
-        label = (label-self.mean) / self.std
+        label = (label - self.mean) / self.std
 
         if self.time_input:
-            inputs_t = torch.ones(1, self.resolution, self.resolution).type(torch.float32)*time
+            inputs_t = (
+                torch.ones(1, self.resolution, self.resolution).type(torch.float32)
+                * time
+            )
             inputs = torch.cat((inputs, inputs_t), 0)
-        
+
         if self.masked_input is not None:
             return time, inputs, label, self.mask
         else:
             return time, inputs, label
 
-#--------------------------------------------------------    
+
+# --------------------------------------------------------
+
 
 class RiemannKHTimeDataset(BaseTimeDataset):
     def __init__(self, *args, **kwargs):
@@ -906,15 +1104,23 @@ class RiemannKHTimeDataset(BaseTimeDataset):
         self.N_test = 240
 
         if self.in_dist:
-            data_path = self.data_path + '/riemann_kh.nc'
+            data_path = self.data_path + "/riemann_kh.nc"
         else:
             raise NotImplementedError()
 
         self.reader = h5py.File(data_path, "r")
-        
-        self.mean = torch.tensor([0.80, 0.0,     0.0,  1.33], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-        self.std = torch.tensor( [0.31, 0.391, 0.356, 0.185],  dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-        
+
+        self.mean = (
+            torch.tensor([0.80, 0.0, 0.0, 1.33], dtype=torch.float32)
+            .unsqueeze(1)
+            .unsqueeze(1)
+        )
+        self.std = (
+            torch.tensor([0.31, 0.391, 0.356, 0.185], dtype=torch.float32)
+            .unsqueeze(1)
+            .unsqueeze(1)
+        )
+
         self.post_init()
 
     def __getitem__(self, idx):
@@ -930,36 +1136,39 @@ class RiemannKHTimeDataset(BaseTimeDataset):
             t2 = self.time_step_size * (_idx + 1)
             t = t2 - t1
         time = t / 20.0
-        
-        
+
         inputs = (
-            torch.tensor(self.reader[i + self.start,t1,:4])
+            torch.tensor(self.reader[i + self.start, t1, :4])
             .type(torch.float32)
             .reshape(4, self.resolution, self.resolution)
         )
         label = (
-            torch.tensor(self.reader[i + self.start,t2,:4])
+            torch.tensor(self.reader[i + self.start, t2, :4])
             .type(torch.float32)
             .reshape(4, self.resolution, self.resolution)
         )
-        
+
         inputs = (inputs - self.mean) / self.std
-        label = (label-self.mean) / self.std
+        label = (label - self.mean) / self.std
 
         if self.time_input:
-            inputs_t = torch.ones(1, self.resolution, self.resolution).type(torch.float32)*time
+            inputs_t = (
+                torch.ones(1, self.resolution, self.resolution).type(torch.float32)
+                * time
+            )
             inputs = torch.cat((inputs, inputs_t), 0)
-        
+
         if self.masked_input is not None:
             return time, inputs, label, self.mask
         else:
             return time, inputs, label
 
-#--------------------------------------------------------
+
+# --------------------------------------------------------
 # Richtmyer-Meshkov Experiment:
-#--------------------------------------------------------
+# --------------------------------------------------------
 class RichtmyerMeshkov(BaseTimeDataset):
-    def __init__(self, *args, tracer = False, **kwargs):
+    def __init__(self, *args, tracer=False, **kwargs):
         super().__init__(*args, **kwargs)
         assert self.max_num_time_steps * self.time_step_size <= 20
 
@@ -970,29 +1179,29 @@ class RichtmyerMeshkov(BaseTimeDataset):
         self.tracer = tracer
 
         if self.in_dist:
-            data_path = self.data_path +'/richtmyer_meshkov.nc'
-        
+            data_path = self.data_path + "/richtmyer_meshkov.nc"
+
         else:
             raise NotImplementedError()
 
         self.reader = h5py.File(data_path, "r")
-        
+
         self.label_description = (
             "[rho],[u,v],[p]" if not tracer else "[rho],[u,v],[p],[tracer]"
         )
-        
+
         self.constants = {
-            "mean": torch.tensor(
-                [1.1964245, -7.164812e-06, 2.8968952e-06, 1.5648036]
-            ).unsqueeze(1).unsqueeze(1),
-            "std": torch.tensor(
-                [0.5543239, 0.24304213, 0.2430597, 0.89639103]
-            ).unsqueeze(1).unsqueeze(1),
+            "mean": torch.tensor([1.1964245, -7.164812e-06, 2.8968952e-06, 1.5648036])
+            .unsqueeze(1)
+            .unsqueeze(1),
+            "std": torch.tensor([0.5543239, 0.24304213, 0.2430597, 0.89639103])
+            .unsqueeze(1)
+            .unsqueeze(1),
             "time": 20.0,
             "tracer_mean": 1.3658239,
             "tracer_std": 0.46400866,
         }
-        
+
         self.post_init()
 
     def __getitem__(self, idx):
@@ -1008,23 +1217,22 @@ class RichtmyerMeshkov(BaseTimeDataset):
             t2 = self.time_step_size * (_idx + 1)
             t = t2 - t1
         time = t / 20.0
-        
-        
+
         inputs = (
             torch.from_numpy(self.reader.variables["solution"][i + self.start, t1, 0:4])
             .type(torch.float32)
             .reshape(4, self.resolution, self.resolution)
         )
-        
+
         label = (
             torch.from_numpy(self.reader.variables["solution"][i + self.start, t2, 0:4])
             .type(torch.float32)
             .reshape(4, self.resolution, self.resolution)
         )
-        
+
         inputs = (inputs - self.constants["mean"]) / self.constants["std"]
         label = (label - self.constants["mean"]) / self.constants["std"]
-        
+
         if self.tracer:
             input_tracer = (
                 torch.from_numpy(
@@ -1042,24 +1250,27 @@ class RichtmyerMeshkov(BaseTimeDataset):
             )
             inputs = torch.cat([inputs, input_tracer], dim=0)
             label = torch.cat([label, output_tracer], dim=0)
-        
+
         if self.time_input:
-            inputs_t = torch.ones(1, self.resolution, self.resolution).type(torch.float32)*time
+            inputs_t = (
+                torch.ones(1, self.resolution, self.resolution).type(torch.float32)
+                * time
+            )
             inputs = torch.cat((inputs, inputs_t), 0)
-        
+
         if self.masked_input is not None:
             return time, inputs, label, self.mask
         else:
             return time, inputs, label
 
 
-
-#--------------------------------------------------------
+# --------------------------------------------------------
 # Rayleigh-Taylor Experiment (Euler + Force):
-#--------------------------------------------------------
+# --------------------------------------------------------
+
 
 class RayleighTaylor(BaseTimeDataset):
-    def __init__(self, *args, tracer=False,  **kwargs):
+    def __init__(self, *args, tracer=False, **kwargs):
         super().__init__(*args, **kwargs)
         assert self.max_num_time_steps * self.time_step_size <= 10
 
@@ -1068,31 +1279,35 @@ class RayleighTaylor(BaseTimeDataset):
         self.N_test = 130
         self.resolution = 128
         self.tracer = tracer
-        
+
         if self.in_dist:
-            data_path = self.data_path + '/rayleigh_taylor.nc'
-        
+            data_path = self.data_path + "/rayleigh_taylor.nc"
+
         else:
             raise NotImplementedError()
 
         self.reader = h5py.File(data_path, "r")
-        
+
         self.label_description = (
             "[rho],[u,v],[p],[g]" if not tracer else "[rho],[u,v],[p],[tracer],[g]"
         )
-        
+
         self.constants = {
             "mean": torch.tensor(
-               [0.8970493, 4.0316996e-13, -1.3858967e-13, 0.7133829, -1.7055787]
-            ).unsqueeze(1).unsqueeze(1),
+                [0.8970493, 4.0316996e-13, -1.3858967e-13, 0.7133829, -1.7055787]
+            )
+            .unsqueeze(1)
+            .unsqueeze(1),
             "std": torch.tensor(
                 [0.12857835, 0.014896976, 0.014896975, 0.21293919, 0.40131348]
-            ).unsqueeze(1).unsqueeze(1),
+            )
+            .unsqueeze(1)
+            .unsqueeze(1),
             "time": 10.0,
             "tracer_mean": 1.8061695,
             "tracer_std": 0.37115487,
         }
-        
+
         print(self.which, self.N_test, self.N_max - self.N_test, "CHECK")
         self.post_init()
 
@@ -1109,8 +1324,7 @@ class RayleighTaylor(BaseTimeDataset):
             t2 = self.time_step_size * (_idx + 1)
             t = t2 - t1
         time = t / self.constants["time"]
-        
-        
+
         inputs = (
             torch.from_numpy(self.reader.variables["solution"][i + self.start, t1, 0:4])
             .type(torch.float32)
@@ -1132,13 +1346,12 @@ class RayleighTaylor(BaseTimeDataset):
             .type(torch.float32)
             .reshape(1, self.resolution, self.resolution)
         )
-        
+
         inputs = (inputs - self.constants["mean"][:4]) / self.constants["std"][:4]
         g_1 = (g_1 - self.constants["mean"][4]) / self.constants["std"][4]
         g_2 = (g_2 - self.constants["mean"][4]) / self.constants["std"][4]
         label = (label - self.constants["mean"][:4]) / self.constants["std"][:4]
-        
-        
+
         if self.tracer:
             tracer_1 = (
                 torch.from_numpy(
@@ -1165,19 +1378,24 @@ class RayleighTaylor(BaseTimeDataset):
         else:
             inputs = torch.cat([inputs, g_1], dim=0)
             label = torch.cat([label, g_2], dim=0)
-        
+
         if self.time_input:
-            inputs_t = torch.ones(1, self.resolution, self.resolution).type(torch.float32)*time
+            inputs_t = (
+                torch.ones(1, self.resolution, self.resolution).type(torch.float32)
+                * time
+            )
             inputs = torch.cat((inputs, inputs_t), 0)
-        
+
         if self.masked_input is not None:
             return time, inputs, label, self.mask
         else:
             return time, inputs, label
 
-#--------------------------------------------------------
+
+# --------------------------------------------------------
 # Allen-Cahn Equation:
-#--------------------------------------------------------
+# --------------------------------------------------------
+
 
 class AllenCahn(BaseTimeDataset):
     def __init__(self, *args, **kwargs):
@@ -1232,14 +1450,19 @@ class AllenCahn(BaseTimeDataset):
         labels = (labels - self.constants["mean"]) / self.constants["std"]
 
         if self.time_input:
-            inputs_t = torch.ones(1, self.resolution, self.resolution).type(torch.float32)*time
+            inputs_t = (
+                torch.ones(1, self.resolution, self.resolution).type(torch.float32)
+                * time
+            )
             inputs = torch.cat((inputs, inputs_t), 0)
-        
+
         return time, inputs, labels
 
-#--------------------------------------------------------
+
+# --------------------------------------------------------
 # Poisson Equation:
-#--------------------------------------------------------
+# --------------------------------------------------------
+
 
 class PoissonBase(BaseDataset):
     def __init__(self, file_path, *args, **kwargs):
@@ -1252,11 +1475,11 @@ class PoissonBase(BaseDataset):
         self.file_path = os.path.join(self.data_path, file_path)
         self.reader = h5py.File(self.file_path, "r")
         self.constants = {
-                        "mean_source": 0.014822142414492256,
-                        "std_source": 4.755138816607612,
-                        "mean_solution": 0.0005603458434937093,
-                        "std_solution": 0.02401226126952699,
-                        }
+            "mean_source": 0.014822142414492256,
+            "std_source": 4.755138816607612,
+            "mean_solution": 0.0005603458434937093,
+            "std_solution": 0.02401226126952699,
+        }
 
         self.input_dim = 1
         self.label_description = "[u]"
@@ -1280,8 +1503,9 @@ class PoissonBase(BaseDataset):
         labels = (labels - self.constants["mean_solution"]) / self.constants[
             "std_solution"
         ]
-        
+
         return 1.0, inputs, labels
+
 
 class PoissonGaussians(PoissonBase):
     def __init__(self, *args, **kwargs):
@@ -1292,9 +1516,10 @@ class PoissonGaussians(PoissonBase):
         super().__init__("poisson_equation/gaussians.nc", *args, **kwargs)
 
 
-#--------------------------------------------------------
+# --------------------------------------------------------
 # Helmholts Equation:
-#--------------------------------------------------------
+# --------------------------------------------------------
+
 
 class Helmholtz(BaseDataset):
     def __init__(self, *args, **kwargs):
@@ -1338,9 +1563,11 @@ class Helmholtz(BaseDataset):
 
         return 1.0, inputs, labels
 
-#--------------------------------------------------------
+
+# --------------------------------------------------------
 # Airfoil Dataset (Steady):
-#--------------------------------------------------------
+# --------------------------------------------------------
+
 
 class Airfoil(BaseDataset):
     def __init__(self, *args, tracer=False, **kwargs):
@@ -1365,7 +1592,7 @@ class Airfoil(BaseDataset):
         self.post_init()
 
     def __getitem__(self, idx):
-        
+
         time = 1.0
 
         inputs = (
@@ -1380,16 +1607,21 @@ class Airfoil(BaseDataset):
         )
 
         labels = (labels - self.constants["mean"]) / self.constants["std"]
-        
+
         if self.time_input:
-            inputs_t = torch.ones(1, self.resolution, self.resolution).type(torch.float32)*time
+            inputs_t = (
+                torch.ones(1, self.resolution, self.resolution).type(torch.float32)
+                * time
+            )
             inputs = torch.cat((inputs, inputs_t), 0)
-        
+
         return time, inputs, labels
-    
-#--------------------------------------------------------
+
+
+# --------------------------------------------------------
 # Wave Equation:
-#--------------------------------------------------------
+# --------------------------------------------------------
+
 
 class WaveSeismic(BaseTimeDataset):
     def __init__(self, *args, **kwargs):
@@ -1418,7 +1650,7 @@ class WaveSeismic(BaseTimeDataset):
         self.post_init()
 
     def __getitem__(self, idx):
-        
+
         i = idx // self.multiplier
         _idx = idx - i * self.multiplier
 
@@ -1431,7 +1663,6 @@ class WaveSeismic(BaseTimeDataset):
             t2 = self.time_step_size * (_idx + 1)
             t = t2 - t1
         time = t / self.constants["time"]
-        
 
         inputs = (
             torch.from_numpy(self.reader["solution"][i + self.start, t1])
@@ -1452,16 +1683,19 @@ class WaveSeismic(BaseTimeDataset):
         inputs = (inputs - self.constants["mean"]) / self.constants["std"]
         inputs_c = (inputs_c - self.constants["mean_c"]) / self.constants["std_c"]
         labels = (labels - self.constants["mean"]) / self.constants["std"]
-            
+
         inputs = torch.cat([inputs, inputs_c], dim=0)
         labels = torch.cat([labels, inputs_c], dim=0)
-        
-        
+
         if self.time_input:
-            inputs_t = torch.ones(1, self.resolution, self.resolution).type(torch.float32)*time
+            inputs_t = (
+                torch.ones(1, self.resolution, self.resolution).type(torch.float32)
+                * time
+            )
             inputs = torch.cat((inputs, inputs_t), 0)
-        
+
         return time, inputs, labels
+
 
 class WaveGaussians(BaseTimeDataset):
     def __init__(self, *args, **kwargs):
@@ -1502,8 +1736,6 @@ class WaveGaussians(BaseTimeDataset):
             t2 = self.time_step_size * (_idx + 1)
             t = t2 - t1
         time = t / self.constants["time"]
-        
-        
 
         inputs = (
             torch.from_numpy(self.reader["solution"][i + self.start, t1])
@@ -1527,18 +1759,22 @@ class WaveGaussians(BaseTimeDataset):
 
         inputs = torch.cat([inputs, inputs_c], dim=0)
         labels = torch.cat([labels, inputs_c], dim=0)
-        
+
         if self.time_input:
-            inputs_t = torch.ones(1, self.resolution, self.resolution).type(torch.float32)*time
+            inputs_t = (
+                torch.ones(1, self.resolution, self.resolution).type(torch.float32)
+                * time
+            )
             inputs = torch.cat((inputs, inputs_t), 0)
-        
+
         return time, inputs, labels
 
 
-#--------------------------------------------------------
+# --------------------------------------------------------
 # Kolmogorov:
-#--------------------------------------------------------
-    
+# --------------------------------------------------------
+
+
 class KolmogorovFlow(BaseTimeDataset):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -1552,11 +1788,14 @@ class KolmogorovFlow(BaseTimeDataset):
         data_path = self.data_path + "/incompressible_fluids/forcing/kolmogorov_pwc.nc"
         self.reader = h5py.File(data_path, "r")
 
-        self.mean = torch.tensor([0.0, 0.0], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-        self.std = torch.tensor( [0.22, 0.22],  dtype=torch.float32).unsqueeze(1).unsqueeze(1)
+        self.mean = (
+            torch.tensor([0.0, 0.0], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
+        )
+        self.std = (
+            torch.tensor([0.22, 0.22], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
+        )
         self.std_forcing = 0.0707
-        
-        
+
         X, Y = torch.meshgrid(
             torch.linspace(0, 1, self.resolution),
             torch.linspace(0, 1, self.resolution),
@@ -1565,10 +1804,10 @@ class KolmogorovFlow(BaseTimeDataset):
         f = lambda x, y: 0.1 * torch.sin(2.0 * np.pi * (x + y))
         self.forcing = f(X, Y).unsqueeze(0)
         self.forcing = self.forcing / self.std_forcing
-        
+
         self.input_dim = 3
         self.label_description = "[u,v],[f]"
-    
+
         self.post_init()
 
     def __getitem__(self, idx):
@@ -1584,7 +1823,6 @@ class KolmogorovFlow(BaseTimeDataset):
             t2 = self.time_step_size * (_idx + 1)
             t = t2 - t1
         time = t / 20.0
-        
 
         inputs_v = (
             torch.from_numpy(self.reader["solution"][i + self.start, t1, 0:2])
@@ -1599,24 +1837,27 @@ class KolmogorovFlow(BaseTimeDataset):
 
         inputs_v = (inputs_v - self.mean) / self.std
         label_v = (label_v - self.mean) / self.std
-        
-        inputs  = torch.cat((inputs_v, self.forcing), 0)
+
+        inputs = torch.cat((inputs_v, self.forcing), 0)
         label_v = torch.cat((label_v, self.forcing), 0)
-        
+
         if self.time_input:
-            inputs_t = torch.ones(1, self.resolution, self.resolution).type(torch.float32)*time
+            inputs_t = (
+                torch.ones(1, self.resolution, self.resolution).type(torch.float32)
+                * time
+            )
             inputs = torch.cat((inputs, inputs_t), 0)
-        
-        
-        
+
         if self.masked_input is not None:
             return time, inputs, label_v, self.mask
         else:
             return time, inputs, label_v
-        
-#-------------------------
+
+
+# -------------------------
 # Navier-Stokes Tracers:
-#-------------------------
+# -------------------------
+
 
 class PiecewiseConstantsTraceTimeDataset(BaseTimeDataset):
     def __init__(self, *args, **kwargs):
@@ -1633,11 +1874,18 @@ class PiecewiseConstantsTraceTimeDataset(BaseTimeDataset):
             raise NotImplementedError()
 
         self.reader = h5py.File(data_path, "r")
-        #0.391, 0.356
-        #0.49198706571149564, 0.36194905497513363
-        self.mean = torch.tensor([0,0,0.19586183], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-        self.std = torch.tensor([0.391, 0.356,0.37], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
-
+        # 0.391, 0.356
+        # 0.49198706571149564, 0.36194905497513363
+        self.mean = (
+            torch.tensor([0, 0, 0.19586183], dtype=torch.float32)
+            .unsqueeze(1)
+            .unsqueeze(1)
+        )
+        self.std = (
+            torch.tensor([0.391, 0.356, 0.37], dtype=torch.float32)
+            .unsqueeze(1)
+            .unsqueeze(1)
+        )
 
         self.post_init()
 
@@ -1665,12 +1913,15 @@ class PiecewiseConstantsTraceTimeDataset(BaseTimeDataset):
             .type(torch.float32)
             .reshape(3, self.resolution, self.resolution)
         )
-        
+
         inputs = (inputs - self.mean) / self.std
-        label = (label-self.mean) / self.std
+        label = (label - self.mean) / self.std
 
         if self.time_input:
-            inputs_t = torch.ones(1, self.resolution, self.resolution).type(torch.float32)*time
+            inputs_t = (
+                torch.ones(1, self.resolution, self.resolution).type(torch.float32)
+                * time
+            )
             inputs = torch.cat((inputs, inputs_t), 0)
-        
+
         return time, inputs, label

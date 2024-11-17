@@ -1,6 +1,6 @@
 
 # Time-Dependent CNO2d & CNO-Foundation Model
-- ### In this folder, one can find the implementation of Time-Dependent Convolutional Neural Operator, introduced in the paper [Poseidon: Efficient Foundation Models for PDEs](https://arxiv.org/abs/2405.19101).  See the official [github page](https://github.com/camlab-ethz/poseidon/blob/main/README.md) of the paper. 
+- ### In this folder, one can find the implementation of Time-Dependent Convolutional Neural Operator, introduced in the paper [Poseidon: Efficient Foundation Models for PDEs](https://arxiv.org/abs/2405.19101).  See the official [github page](https://github.com/camlab-ethz/poseidon/blob/main/README.md) of the paper.
 - ### Moreover, one can train, evaluate and **finetune** the CNO - Foundation Model (109M), introduced in the same paper. The weights of CNO-FM are available [here](https://zenodo.org/records/11401801).
 
 ## Time-Dependent CNO
@@ -47,7 +47,7 @@ Important parameters related to the CNO training are:
 
 ### Benchmarks
 
-We provide all datasets used in the paper on the 🤗 Hub. You can download them from the respective collections: 
+We provide all datasets used in the paper on the 🤗 Hub. You can download them from the respective collections:
 - [🤗 Hub – Pretraining Datasets](https://huggingface.co/collections/camlab-ethz/poseidon-664fa125729c53d8607e209a)
 - [🤗 Hub – Downstream Tasks](https://huggingface.co/collections/camlab-ethz/poseidon-downstream-tasks-664fa237cd6b0c097971ef14)
 
@@ -57,34 +57,34 @@ To select the benchmark experiment for CNO to be trained, the variable **which_e
 
 | which_example | 🤗 Hub/Paper Identifier |
 | ------ | ------ |
-| ns_brownian | NS-BB | 
-| ns_pwc | NS-PwC | 
-| ns_gauss | NS-Gauss | 
+| ns_brownian | NS-BB |
+| ns_pwc | NS-PwC |
+| ns_gauss | NS-Gauss |
 | ns_sin | NS-Sines |
-| ns_vortex | NS-SVS | 
-| ns_shear | NS-SL | 
-| ns_pwc_t | NS-Tracer-PwC | 
-| eul_kh | CE-KH | 
-| eul_riemann | CE-RP | 
-| eul_riemann_kh | CE-RPUI | 
-| eul_riemann_cur | CE-CRP| 
-| eul_gauss | CE-Gauss | 
-| rich_mesh | CE-RM | 
-| rayl_tayl | GCE-RT | 
-| kolmogorov | FNS-KF | 
-| wave_seismic | Wave-Layer | 
-| wave_gauss | Wave-Gauss | 
-| allen_cahn | ACE | 
-| airfoil | SE-AF | 
-| poisson_gauss | Poisson-Gauss | 
-| helmholtz | Helmholtz | 
+| ns_vortex | NS-SVS |
+| ns_shear | NS-SL |
+| ns_pwc_t | NS-Tracer-PwC |
+| eul_kh | CE-KH |
+| eul_riemann | CE-RP |
+| eul_riemann_kh | CE-RPUI |
+| eul_riemann_cur | CE-CRP|
+| eul_gauss | CE-Gauss |
+| rich_mesh | CE-RM |
+| rayl_tayl | GCE-RT |
+| kolmogorov | FNS-KF |
+| wave_seismic | Wave-Layer |
+| wave_gauss | Wave-Gauss |
+| allen_cahn | ACE |
+| airfoil | SE-AF |
+| poisson_gauss | Poisson-Gauss |
+| helmholtz | Helmholtz |
 
 ## Finetunning CNO-FM
 
 One can download the weights CNO-Foundation Model (109M) on [this link](https://zenodo.org/records/11401801).  Model specifications are given in the paper [Poseidon: Efficient Foundation Models for PDEs](https://arxiv.org/abs/2405.19101).
 
- One can **fine-tune** the CNO-FM with the script 
- 
+ One can **fine-tune** the CNO-FM with the script
+
 	 CNO_FineTune.py
 
 One must select an experiment from the list above and modify the relevant parameters in the script. Important parameters related to the finetuning CNO are:
@@ -100,7 +100,7 @@ One must select an experiment from the list above and modify the relevant parame
 
 ## Running your own experiments
 
-The file 
+The file
 
 	DataLoaders/CNO_TimeLoaders.py
 
@@ -115,4 +115,3 @@ corresponds to the dataloaders for the CNO model.
 ## Error Computations
 
 To compute the relative L1 median errors of the CNOmodels, one scould run the scripts *TestCNO_ALL.py*.  One should set relevant parameters to theit true values to be able to run the script.
-

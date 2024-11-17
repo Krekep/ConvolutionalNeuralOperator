@@ -10,7 +10,7 @@ import torch.nn.functional as F
 
 from debug_tools import format_tensor_size
 
-os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
 
 torch.manual_seed(0)
 np.random.seed(0)
@@ -20,20 +20,26 @@ np.random.seed(0)
 #  1d fourier layer
 ###############################################################################
 
+
 class SpectralConv1d(nn.Module):
     def __init__(self, in_channels, out_channels, modes1):
         super(SpectralConv1d, self).__init__()
 
         """
-        1D Fourier layer. It does FFT, linear transform, and Inverse FFT.    
+        1D Fourier layer. It does FFT, linear transform, and Inverse FFT.
         """
 
         self.in_channels = in_channels
         self.out_channels = out_channels
-        self.modes1 = modes1  # Number of Fourier modes to multiply, at most floor(N/2) + 1
+        self.modes1 = (
+            modes1  # Number of Fourier modes to multiply, at most floor(N/2) + 1
+        )
 
-        self.scale = (1 / (in_channels * out_channels))
-        self.weights1 = nn.Parameter(self.scale * torch.rand(in_channels, out_channels, self.modes1, dtype=torch.cfloat))
+        self.scale = 1 / (in_channels * out_channels)
+        self.weights1 = nn.Parameter(
+            self.scale
+            * torch.rand(in_channels, out_channels, self.modes1, dtype=torch.cfloat)
+        )
 
     # Complex multiplication
     def compl_mul1d(self, input, weights):
@@ -47,8 +53,16 @@ class SpectralConv1d(nn.Module):
         # x_ft[0] = 0.5 * x_ft[0]
 
         # Multiply relevant Fourier modes
-        out_ft = torch.zeros(batchsize, self.out_channels, x.size(-1) // 2 + 1, device=x.device, dtype=torch.cfloat)
-        out_ft[:, :, :self.modes1] = self.compl_mul1d(x_ft[:, :, :self.modes1], self.weights1)
+        out_ft = torch.zeros(
+            batchsize,
+            self.out_channels,
+            x.size(-1) // 2 + 1,
+            device=x.device,
+            dtype=torch.cfloat,
+        )
+        out_ft[:, :, : self.modes1] = self.compl_mul1d(
+            x_ft[:, :, : self.modes1], self.weights1
+        )
 
         # Return to physical space
         x = torch.fft.irfft(out_ft, n=x.size(-1))
@@ -81,9 +95,14 @@ class FNO1d(nn.Module):
         self.padding_frac = padding_frac
         self.fc0 = nn.Linear(nfun + 1, self.width)
         self.conv_list = nn.ModuleList(
-            [nn.Conv1d(self.width, self.width, 1) for _ in range(self.n_layers)])
+            [nn.Conv1d(self.width, self.width, 1) for _ in range(self.n_layers)]
+        )
         self.spectral_list = nn.ModuleList(
-            [SpectralConv1d(self.width, self.width, self.modes) for _ in range(self.n_layers)])
+            [
+                SpectralConv1d(self.width, self.width, self.modes)
+                for _ in range(self.n_layers)
+            ]
+        )
 
         self.fc1 = nn.Linear(self.width, 128)
         self.fc2 = nn.Linear(128, 1)
@@ -120,7 +139,9 @@ class FNO1d(nn.Module):
             nparams += param.numel()
             nbytes += param.data.element_size() * param.numel()
 
-        print(f'Total number of model parameters: {nparams} (~{format_tensor_size(nbytes)})')
+        print(
+            f"Total number of model parameters: {nparams} (~{format_tensor_size(nbytes)})"
+        )
 
         return nparams
 
@@ -130,17 +151,29 @@ class SpectralConv2d(nn.Module):
         super(SpectralConv2d, self).__init__()
 
         """
-        2D Fourier layer. It does FFT, linear transform, and Inverse FFT.    
+        2D Fourier layer. It does FFT, linear transform, and Inverse FFT.
         """
 
         self.in_channels = in_channels
         self.out_channels = out_channels
-        self.modes1 = modes1  # Number of Fourier modes to multiply, at most floor(N/2) + 1
+        self.modes1 = (
+            modes1  # Number of Fourier modes to multiply, at most floor(N/2) + 1
+        )
         self.modes2 = modes2
 
-        self.scale = (1 / (in_channels * out_channels))
-        self.weights1 = nn.Parameter(self.scale * torch.rand(in_channels, out_channels, self.modes1, self.modes2, dtype=torch.cfloat))
-        self.weights2 = nn.Parameter(self.scale * torch.rand(in_channels, out_channels, self.modes1, self.modes2, dtype=torch.cfloat))
+        self.scale = 1 / (in_channels * out_channels)
+        self.weights1 = nn.Parameter(
+            self.scale
+            * torch.rand(
+                in_channels, out_channels, self.modes1, self.modes2, dtype=torch.cfloat
+            )
+        )
+        self.weights2 = nn.Parameter(
+            self.scale
+            * torch.rand(
+                in_channels, out_channels, self.modes1, self.modes2, dtype=torch.cfloat
+            )
+        )
 
     # Complex multiplication
     def compl_mul2d(self, input, weights):
@@ -153,20 +186,31 @@ class SpectralConv2d(nn.Module):
         x_ft = torch.fft.rfft2(x)
 
         # Multiply relevant Fourier modes
-        out_ft = torch.zeros(batchsize, self.out_channels, x.size(-2), x.size(-1) // 2 + 1, dtype=torch.cfloat, device=x.device)
-        out_ft[:, :, :self.modes1, :self.modes2] = \
-            self.compl_mul2d(x_ft[:, :, :self.modes1, :self.modes2], self.weights1)
-        out_ft[:, :, -self.modes1:, :self.modes2] = \
-            self.compl_mul2d(x_ft[:, :, -self.modes1:, :self.modes2], self.weights2)
+        out_ft = torch.zeros(
+            batchsize,
+            self.out_channels,
+            x.size(-2),
+            x.size(-1) // 2 + 1,
+            dtype=torch.cfloat,
+            device=x.device,
+        )
+        out_ft[:, :, : self.modes1, : self.modes2] = self.compl_mul2d(
+            x_ft[:, :, : self.modes1, : self.modes2], self.weights1
+        )
+        out_ft[:, :, -self.modes1 :, : self.modes2] = self.compl_mul2d(
+            x_ft[:, :, -self.modes1 :, : self.modes2], self.weights2
+        )
 
         # Return to physical space
         x = torch.fft.irfft2(out_ft, s=(x.size(-2), x.size(-1)))
         return x
 
-#------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+
 
 class FNO2d(nn.Module):
-    def __init__(self, fno_architecture, in_channels = 1, out_channels = 1, device=None):
+    def __init__(self, fno_architecture, in_channels=1, out_channels=1, device=None):
         super(FNO2d, self).__init__()
 
         """
@@ -178,7 +222,7 @@ class FNO2d(nn.Module):
 
         input: the solution of the coefficient function and locations (a(x, y), x, y)
         input shape: (batchsize, x=s, y=s, c=3)
-        output: the solution 
+        output: the solution
         output shape: (batchsize, x=s, y=s, c=1)
         """
         self.modes1 = fno_architecture["modes"]
@@ -189,32 +233,36 @@ class FNO2d(nn.Module):
         self.padding = fno_architecture["padding"]
         self.include_grid = fno_architecture["include_grid"]
         self.input_dim = in_channels
-        self.act  = nn.LeakyReLU() 
+        self.act = nn.LeakyReLU()
         self.device = device
 
         torch.manual_seed(self.retrain_fno)
-        
-        if self.include_grid == 1:
-            self.r = nn.Sequential(nn.Linear(self.input_dim+2, 128),
-                                   self.act,
-                                   nn.Linear(128, self.width))
-        else:
-            self.r = nn.Sequential(nn.Linear(self.input_dim, 128),
-                                   self.act,
-                                   nn.Linear(128, self.width))
-        
-        
-        
-        self.conv_list = nn.ModuleList([nn.Conv2d(self.width, self.width, 1) for _ in range(self.n_layers)])
-        self.spectral_list = nn.ModuleList([SpectralConv2d(self.width, self.width, self.modes1, self.modes2) for _ in range(self.n_layers)])
 
-        
-        self.q = nn.Sequential(nn.Linear(self.width, 128),
-                                self.act,
-                                nn.Linear(128, out_channels))
-        
+        if self.include_grid == 1:
+            self.r = nn.Sequential(
+                nn.Linear(self.input_dim + 2, 128), self.act, nn.Linear(128, self.width)
+            )
+        else:
+            self.r = nn.Sequential(
+                nn.Linear(self.input_dim, 128), self.act, nn.Linear(128, self.width)
+            )
+
+        self.conv_list = nn.ModuleList(
+            [nn.Conv2d(self.width, self.width, 1) for _ in range(self.n_layers)]
+        )
+        self.spectral_list = nn.ModuleList(
+            [
+                SpectralConv2d(self.width, self.width, self.modes1, self.modes2)
+                for _ in range(self.n_layers)
+            ]
+        )
+
+        self.q = nn.Sequential(
+            nn.Linear(self.width, 128), self.act, nn.Linear(128, out_channels)
+        )
+
         self.to(device)
-                
+
     def get_grid(self, samples, res):
         size_x = size_y = res
         samples = samples
@@ -227,18 +275,18 @@ class FNO2d(nn.Module):
         return grid
 
     def forward(self, x):
-                
+
         if self.include_grid == 1:
             grid = self.get_grid(x.shape[0], x.shape[1]).to(self.device)
             x = torch.cat((grid, x), -1)
-        
+
         x = self.r(x)
         x = x.permute(0, 3, 1, 2)
-        
-        x1_padding =  self.padding
-        x2_padding =  self.padding
-                
-        if self.padding>0: 
+
+        x1_padding = self.padding
+        x2_padding = self.padding
+
+        if self.padding > 0:
             x = F.pad(x, [0, x1_padding, 0, x2_padding])
 
         for k, (s, c) in enumerate(zip(self.spectral_list, self.conv_list)):
@@ -248,12 +296,12 @@ class FNO2d(nn.Module):
             x = x1 + x2
             if k != self.n_layers - 1:
                 x = self.act(x)
-        
+
         del x1
         del x2
-        
+
         if self.padding > 0:
-            x = x[..., :-x1_padding, :-x2_padding]            
+            x = x[..., :-x1_padding, :-x2_padding]
         x = x.permute(0, 2, 3, 1)
         x = self.q(x)
 
@@ -267,8 +315,11 @@ class FNO2d(nn.Module):
             nparams += param.numel()
             nbytes += param.data.element_size() * param.numel()
 
-        print(f'Total number of model parameters: {nparams} (~{format_tensor_size(nbytes)})')
+        print(
+            f"Total number of model parameters: {nparams} (~{format_tensor_size(nbytes)})"
+        )
 
         return nparams
 
-#------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------

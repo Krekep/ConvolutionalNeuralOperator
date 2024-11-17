@@ -2,7 +2,7 @@
 # CNO1d - Vanilla Version
 
 - The CNO1d code has been modified from a tutorial featured in the ETH Zurich course "AI in the Sciences and Engineering."
-- Git page for this course: https://github.com/bogdanraonic3/AI_Science_Engineering 
+- Git page for this course: https://github.com/bogdanraonic3/AI_Science_Engineering
 
 ## What is different?
 - For up/downsampling, the antialias interpolation functions from the  torch library are utilized, limiting the ability to design your own low-pass filters at present.
@@ -11,7 +11,7 @@
 
 ## Training
 
-A training script is available, offering a solid foundation for personal projects. 
+A training script is available, offering a solid foundation for personal projects.
 
 The CNO models can be trained by running the python scripts
 
@@ -29,5 +29,5 @@ Important hyperparameters related to the CNO architecture are:
 
 ## Data Loaders
 
-- We wrote a simple dataloader for 1d Allen-Cahn equation. 
+- We wrote a simple dataloader for 1d Allen-Cahn equation.
 - The data is loaded in the *TrainCNO.py* script.

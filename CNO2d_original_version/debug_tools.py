@@ -1,13 +1,7 @@
 import math
 import torch
 
-units = {
-    0: 'B',
-    1: 'KiB',
-    2: 'MiB',
-    3: 'GiB',
-    4: 'TiB'
-}
+units = {0: "B", 1: "KiB", 2: "MiB", 3: "GiB", 4: "TiB"}
 
 
 def format_mem(x):
@@ -17,10 +11,10 @@ def format_mem(x):
 
     """
     if abs(x) < 1024:
-        return round(x, 2), 'B'
+        return round(x, 2), "B"
 
     scale = math.log2(abs(x)) // 10
-    scaled_x = x / 1024 ** scale
+    scaled_x = x / 1024**scale
     unit = units[scale]
 
     if int(scaled_x) == scaled_x:
@@ -32,18 +26,18 @@ def format_mem(x):
 
 def format_tensor_size(x):
     val, unit = format_mem(x)
-    return f'{val}{unit}'
+    return f"{val}{unit}"
 
 
-class CudaMemoryDebugger():
+class CudaMemoryDebugger:
     """
     Helper to track changes in CUDA memory.
 
     """
-    DEVICE = 'cuda'
+
+    DEVICE = "cuda"
     LAST_MEM = 0
     ENABLED = True
-
 
     def __init__(self, print_mem):
         self.print_mem = print_mem
@@ -52,19 +46,19 @@ class CudaMemoryDebugger():
 
         cur_mem = torch.cuda.memory_allocated(CudaMemoryDebugger.DEVICE)
         cur_mem_fmt, cur_mem_unit = format_mem(cur_mem)
-        print(f'cuda allocated (initial): {cur_mem_fmt:.2f}{cur_mem_unit}')
+        print(f"cuda allocated (initial): {cur_mem_fmt:.2f}{cur_mem_unit}")
         CudaMemoryDebugger.LAST_MEM = cur_mem
 
-    def print(self,id_str=None):
+    def print(self, id_str=None):
         if not CudaMemoryDebugger.ENABLED:
             return
 
-        desc = 'cuda allocated'
+        desc = "cuda allocated"
 
         if id_str is not None:
-            desc += f' ({id_str})'
+            desc += f" ({id_str})"
 
-        desc += ':'
+        desc += ":"
 
         cur_mem = torch.cuda.memory_allocated(CudaMemoryDebugger.DEVICE)
         cur_mem_fmt, cur_mem_unit = format_mem(cur_mem)
@@ -72,12 +66,14 @@ class CudaMemoryDebugger():
         diff = cur_mem - CudaMemoryDebugger.LAST_MEM
         if self.print_mem:
             if diff == 0:
-                print(f'{desc} {cur_mem_fmt:.2f}{cur_mem_unit} (no change)')
+                print(f"{desc} {cur_mem_fmt:.2f}{cur_mem_unit} (no change)")
 
             else:
                 diff_fmt, diff_unit = format_mem(diff)
-                print(f'{desc} {cur_mem_fmt:.2f}{cur_mem_unit}'
-                      f' ({diff_fmt:+}{diff_unit})')
+                print(
+                    f"{desc} {cur_mem_fmt:.2f}{cur_mem_unit}"
+                    f" ({diff_fmt:+}{diff_unit})"
+                )
 
         CudaMemoryDebugger.LAST_MEM = cur_mem
 
@@ -90,14 +86,13 @@ def print_tensor_mem(x, id_str=None):
     if not CudaMemoryDebugger.ENABLED:
         return
 
-    desc = 'memory'
+    desc = "memory"
 
     if id_str is not None:
-        desc += f' ({id_str})'
+        desc += f" ({id_str})"
 
-    desc += ':'
+    desc += ":"
 
     val, unit = format_mem(x.element_size() * x.nelement())
 
-    print(f'{desc} {val}{unit}')
-
+    print(f"{desc} {val}{unit}")

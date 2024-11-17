@@ -2,8 +2,8 @@
 
 - This repository is the official implementation of the paper [**Convolutional Neural Operators for robust and accurate learning of PDEs**](https://arxiv.org/pdf/2302.01178.pdf)
 - The paper was presented at **NeurIPS 2023**
-- **Representative PDE Benchmarks (RPB) are available at [this link](https://zenodo.org/records/10406879)** 
-- **Read our blog about CNOs at [this link](https://link.medium.com/Mht8Th5OhFb)** 
+- **Representative PDE Benchmarks (RPB) are available at [this link](https://zenodo.org/records/10406879)**
+- **Read our blog about CNOs at [this link](https://link.medium.com/Mht8Th5OhFb)**
 - This repository also covers CNO codes used in the paper [**Poseidon: Efficient Foundation Models for PDEs**](https://arxiv.org/abs/2405.19101)
 - Vist [**this link**](https://github.com/camlab-ethz/ConvolutionalNeuralOperator/tree/main/CNO2d_time_dependent_%26_foundation_model) for **time-dependent CNO** and **CNO - foundation model**
 - Visit [**Poseidon github page**](https://github.com/camlab-ethz/poseidon)
@@ -60,7 +60,7 @@ Alternatively, run the script `download_data.py` which downloads all required da
 	python3 download_data.py
 
 ## Poseidon: Efficient Foundation Models for PDEs
-We also provide all datasets used in the paper [Poseidon: Efficient Foundation Models for PDEs](https://arxiv.org/abs/2405.19101) on the 🤗 Hub. You can download them from the respective collections: 
+We also provide all datasets used in the paper [Poseidon: Efficient Foundation Models for PDEs](https://arxiv.org/abs/2405.19101) on the 🤗 Hub. You can download them from the respective collections:
 - [🤗 Hub – Pretraining Datasets](https://huggingface.co/collections/camlab-ethz/poseidon-664fa125729c53d8607e209a)
 - [🤗 Hub – Downstream Tasks](https://huggingface.co/collections/camlab-ethz/poseidon-downstream-tasks-664fa237cd6b0c097971ef14)
 
@@ -72,7 +72,7 @@ If you use our models, code, or datasets, please consider citing our paper:
 
 ```bibtex
 @misc{CNO,
-      title={Convolutional Neural Operators for robust and accurate learning of PDEs}, 
+      title={Convolutional Neural Operators for robust and accurate learning of PDEs},
       author={Bogdan Raonić and Roberto Molinaro and Tim De Ryck and Tobias Rohner and Francesca Bartolucci and Rima Alaifari and Siddhartha Mishra and Emmanuel de Bézenac},
       year={2023},
       eprint={2302.01178},
