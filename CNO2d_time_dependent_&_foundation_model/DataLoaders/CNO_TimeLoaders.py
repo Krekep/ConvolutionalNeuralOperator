@@ -1219,13 +1219,13 @@ class RichtmyerMeshkov(BaseTimeDataset):
         time = t / 20.0
 
         inputs = (
-            torch.from_numpy(self.reader.variables["solution"][i + self.start, t1, 0:4])
+            torch.from_numpy(self.reader["solution"][i + self.start, t1, 0:4])
             .type(torch.float32)
             .reshape(4, self.resolution, self.resolution)
         )
 
         label = (
-            torch.from_numpy(self.reader.variables["solution"][i + self.start, t2, 0:4])
+            torch.from_numpy(self.reader["solution"][i + self.start, t2, 0:4])
             .type(torch.float32)
             .reshape(4, self.resolution, self.resolution)
         )
@@ -1236,14 +1236,14 @@ class RichtmyerMeshkov(BaseTimeDataset):
         if self.tracer:
             input_tracer = (
                 torch.from_numpy(
-                    self.reader.variables["solution"][i + self.start, t1, 4:5]
+                    self.reader["solution"][i + self.start, t1, 4:5]
                 )
                 .type(torch.float32)
                 .reshape(1, self.resolution, self.resolution)
             )
             output_tracer = (
                 torch.from_numpy(
-                    self.reader.variables["solution"][i + self.start, t2, 4:5]
+                    self.reader["solution"][i + self.start, t2, 4:5]
                 )
                 .type(torch.float32)
                 .reshape(1, self.resolution, self.resolution)
@@ -1326,23 +1326,23 @@ class RayleighTaylor(BaseTimeDataset):
         time = t / self.constants["time"]
 
         inputs = (
-            torch.from_numpy(self.reader.variables["solution"][i + self.start, t1, 0:4])
+            torch.from_numpy(self.reader["solution"][i + self.start, t1, 0:4])
             .type(torch.float32)
             .reshape(4, self.resolution, self.resolution)
         )
         label = (
-            torch.from_numpy(self.reader.variables["solution"][i + self.start, t2, 0:4])
+            torch.from_numpy(self.reader["solution"][i + self.start, t2, 0:4])
             .type(torch.float32)
             .reshape(4, self.resolution, self.resolution)
         )
 
         g_1 = (
-            torch.from_numpy(self.reader.variables["solution"][i + self.start, t1, 5:6])
+            torch.from_numpy(self.reader["solution"][i + self.start, t1, 5:6])
             .type(torch.float32)
             .reshape(1, self.resolution, self.resolution)
         )
         g_2 = (
-            torch.from_numpy(self.reader.variables["solution"][i + self.start, t2, 5:6])
+            torch.from_numpy(self.reader["solution"][i + self.start, t2, 5:6])
             .type(torch.float32)
             .reshape(1, self.resolution, self.resolution)
         )
@@ -1355,14 +1355,14 @@ class RayleighTaylor(BaseTimeDataset):
         if self.tracer:
             tracer_1 = (
                 torch.from_numpy(
-                    self.reader.variables["solution"][i + self.start, t1, 4:5]
+                    self.reader["solution"][i + self.start, t1, 4:5]
                 )
                 .type(torch.float32)
                 .reshape(1, self.resolution, self.resolution)
             )
             tracer_2 = (
                 torch.from_numpy(
-                    self.reader.variables["solution"][i + self.start, t2, 4:5]
+                    self.reader["solution"][i + self.start, t2, 4:5]
                 )
                 .type(torch.float32)
                 .reshape(1, self.resolution, self.resolution)
