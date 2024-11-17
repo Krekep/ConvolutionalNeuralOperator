@@ -1,0 +1,8 @@
+einops
+jax
+matplotlib
+numpy
+pandas
+pytorch-lightning
+scipy
+torch
