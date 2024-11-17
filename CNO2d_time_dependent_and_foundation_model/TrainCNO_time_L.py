@@ -189,6 +189,7 @@ trainer = Trainer(
     callbacks=[checkpoint_callback, early_stop_callback],
     strategy="ddp_find_unused_parameters_true",  # IMPORTANT!!!
     logger=logger,
+    enable_progress_bar=False,
 )
 trainer.fit(model)
 trainer.validate(model)
