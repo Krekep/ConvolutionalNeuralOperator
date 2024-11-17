@@ -667,8 +667,7 @@ class KelvinHelmholtzTimeDataset(BaseTimeDataset):
         else:
             raise NotImplementedError()
 
-        file = nc.Dataset(data_path, "r")
-        self.reader  = file["data"]
+        self.reader = h5py.File(data_path, "r")
         
         self.mean = torch.tensor([0.80, 0.0,   0.0,   1.0], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
         self.std = torch.tensor( [0.31, 0.391, 0.356, 0.185], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
@@ -729,8 +728,7 @@ class RiemannTimeDataset(BaseTimeDataset):
         else:
             raise NotImplementedError()
 
-        file = nc.Dataset(data_path, "r")
-        self.reader  = file["data"]
+        self.reader = h5py.File(data_path, "r")
 
         self.mean = torch.tensor([0.80, 0.0,   0.0,   0.215], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
         self.std = torch.tensor( [0.31, 0.391, 0.356, 0.185],  dtype=torch.float32).unsqueeze(1).unsqueeze(1)
@@ -790,8 +788,7 @@ class RiemannCurvedTimeDataset(BaseTimeDataset):
         else:
             raise NotImplementedError()
 
-        file = nc.Dataset(data_path, "r")
-        self.reader  = file["data"]
+        self.reader = h5py.File(data_path, "r")
 
         self.mean = torch.tensor([0.80, 0.0,   0.0,   0.553], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
         self.std = torch.tensor( [0.31, 0.391, 0.356, 0.185],  dtype=torch.float32).unsqueeze(1).unsqueeze(1)
@@ -852,8 +849,7 @@ class EulerGaussTimeDataset(BaseTimeDataset):
         else:
             raise NotImplementedError()
 
-        file = nc.Dataset(data_path, "r")
-        self.reader  = file["data"]
+        self.reader = h5py.File(data_path, "r")
         
         self.mean = torch.tensor([0.80, 0.0,   0.0,   2.513], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
         self.std = torch.tensor( [0.31, 0.391, 0.356, 0.185], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
@@ -914,8 +910,7 @@ class RiemannKHTimeDataset(BaseTimeDataset):
         else:
             raise NotImplementedError()
 
-        file = nc.Dataset(data_path, "r")
-        self.reader  = file["data"]
+        self.reader = h5py.File(data_path, "r")
         
         self.mean = torch.tensor([0.80, 0.0,     0.0,  1.33], dtype=torch.float32).unsqueeze(1).unsqueeze(1)
         self.std = torch.tensor( [0.31, 0.391, 0.356, 0.185],  dtype=torch.float32).unsqueeze(1).unsqueeze(1)
@@ -980,7 +975,7 @@ class RichtmyerMeshkov(BaseTimeDataset):
         else:
             raise NotImplementedError()
 
-        self.reader = nc.Dataset(data_path, "r")
+        self.reader = h5py.File(data_path, "r")
         
         self.label_description = (
             "[rho],[u,v],[p]" if not tracer else "[rho],[u,v],[p],[tracer]"
@@ -1080,7 +1075,7 @@ class RayleighTaylor(BaseTimeDataset):
         else:
             raise NotImplementedError()
 
-        self.reader = nc.Dataset(data_path, "r")
+        self.reader = h5py.File(data_path, "r")
         
         self.label_description = (
             "[rho],[u,v],[p],[g]" if not tracer else "[rho],[u,v],[p],[tracer],[g]"
@@ -1195,7 +1190,7 @@ class AllenCahn(BaseTimeDataset):
         self.resolution = 128
 
         data_path = self.data_path + "/reaction_diffusion/allen_cahn.nc"
-        self.reader = nc.Dataset(data_path, "r")
+        self.reader = h5py.File(data_path, "r")
 
         self.constants = {
             "mean": 0.002484262,
@@ -1255,7 +1250,7 @@ class PoissonBase(BaseDataset):
         self.resolution = 128
 
         self.file_path = os.path.join(self.data_path, file_path)
-        self.reader = nc.Dataset(self.file_path, "r")
+        self.reader = h5py.File(self.file_path, "r")
         self.constants = {
                         "mean_source": 0.014822142414492256,
                         "std_source": 4.755138816607612,
