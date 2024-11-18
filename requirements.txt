@@ -8,5 +8,7 @@ numpy
 pandas
 pre-commit
 pytorch-lightning
+requests
 scipy
+tensorboard
 torch

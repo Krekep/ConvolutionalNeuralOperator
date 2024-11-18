@@ -1745,6 +1745,28 @@ class WaveGaussians(BaseTimeDataset):
             .reshape(1, self.resolution, self.resolution)
         )
 
+        file = open("wave_gauss_inputs.txt", "w")
+        file.write(
+            f"idx = {idx}\n"
+            f"i = {i}\n"
+            f"self.start = {self.start}\n"
+            f"t2 = {t2}\n"
+            f"\n"
+            f"\n"
+            f"inputs = {inputs}\n"
+            f"inputs_shape = {inputs.shape}\n"
+            f"\n"
+            f"\n"
+            f"inputs_c = {inputs_c}\n"
+            f"inputs_c_shape = {inputs_c.shape}\n"
+            f"\n"
+            f"\n"
+            f"labels = {labels}\n"
+            f"labels_shape = {labels.shape}\n"
+            f"\n"
+            f"\n"
+        )
+
         inputs = (inputs - self.constants["mean"]) / self.constants["std"]
         inputs_c = (inputs_c - self.constants["mean_c"]) / self.constants["std_c"]
         labels = (labels - self.constants["mean"]) / self.constants["std"]
@@ -1758,6 +1780,17 @@ class WaveGaussians(BaseTimeDataset):
                 * time
             )
             inputs = torch.cat((inputs, inputs_t), 0)
+
+        file.write(
+            "After cat and other manipulation\n"
+            f"inputs = {inputs}\n"
+            f"inputs_shape = {inputs.shape}\n"
+            f"\n"
+            f"\n"
+            f"labels = {labels}\n"
+            f"labels_shape = {labels.shape}\n"
+        )
+        file.close()
 
         return time, inputs, labels
 
