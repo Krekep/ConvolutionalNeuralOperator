@@ -1745,12 +1745,19 @@ class WaveGaussians(BaseTimeDataset):
             .reshape(1, self.resolution, self.resolution)
         )
 
-        file = open("wave_gauss_inputs.txt", "w")
+        file = open("wave_gauss_inputs.txt", "a")
         file.write(
             f"idx = {idx}\n"
             f"i = {i}\n"
+            f"self.multiplier = {self.multiplier}\n"
             f"self.start = {self.start}\n"
+            f"self.fix_input_to_time_step = {self.fix_input_to_time_step}\n"
+            f"self.time_step_size = {self.time_step_size}\n"
+            f"self.time_indices[_idx] = {self.time_indices[_idx]}\n"
+            f"t1 = {t1}\n"
             f"t2 = {t2}\n"
+            f"time = {time}\n"
+            f"self.constants['time'] = {self.constants['time']}\n"
             f"\n"
             f"\n"
             f"inputs = {inputs}\n"
