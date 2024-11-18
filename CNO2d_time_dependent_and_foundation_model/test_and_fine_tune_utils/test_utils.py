@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import copy
 import numpy as np
 
-from DataLoaders.load_utils import _load_dataset
+from DataLoaders.load_utils import load_dataset
 
 # ------------------------------------------------
 # Provide a current dictionary and a file to load
@@ -333,7 +333,7 @@ def _load_data(
 
     loader_dict["normalize"] = True
 
-    test_dataset = _load_dataset(
+    test_dataset = load_dataset(
         dic=loader_dict,
         which=which,
         which_loader=which_loader,

@@ -1,0 +1,12 @@
+learning_rate,0.00075
+weight_decay,1e-06
+scheduler_step,1
+scheduler_gamma,0.9
+epochs,100
+batch_size,32
+time_steps,7
+dt,1
+training_samples,32
+time_input,True
+allowed,all
+cluster,True

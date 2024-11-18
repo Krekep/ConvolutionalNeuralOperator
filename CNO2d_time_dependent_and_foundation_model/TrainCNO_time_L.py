@@ -62,8 +62,8 @@ if len(sys.argv) <= 4:
     # FOR PRETRAINING CNO-FM: which_example = "eul_ns_mix1"
 
     # WHAT IS THE EXPERIMENT?
-    which_example = sys.argv[1] if len(sys.argv) == 2 else "rich_mesh"
-    path_to_data = sys.argv[2] if len(sys.argv) == 3 else "--- Provide data path ---"
+    which_example = sys.argv[1] if len(sys.argv) >= 2 else "rich_mesh"
+    path_to_data = sys.argv[2] if len(sys.argv) >= 3 else "--- Provide data path ---"
     i = sys.argv[3] if len(sys.argv) == 4 else 1
     folder = "TrainedModels/" + "Time_CNO_" + which_example + f"_{i}"
 
