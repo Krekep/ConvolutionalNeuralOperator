@@ -52,7 +52,7 @@ if __name__ == "__main__":
 
         # WHAT IS THE EXPERIMENT?
         which = "wave_gauss"
-        folder = sys.argv[2]
+        folder = sys.argv[1]
 
     else:
         folder = sys.argv[2]
