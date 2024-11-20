@@ -26,7 +26,7 @@ from test_and_fine_tune_utils.fine_tune_lift import initialize_FT
 
 if __name__ == "__main__":
 
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 3:
 
         properties = {
             "num_trajectories": 128,
@@ -37,8 +37,8 @@ if __name__ == "__main__":
             "scheduler_step": 5,
             "scheduler_gamma": 0.9,
             "is_different_dim": 1,  # Are the dimensions different from the pretraining (out-of-context)?
-            "in_dim_tune": 4,  # If yes, what are they?
-            "out_dim_tune": 3,
+            "in_dim_tune": 3,  # If yes, what are they?
+            "out_dim_tune": 2,
             "steps": 7,  # Time steps in the dataset
         }
 
@@ -51,15 +51,15 @@ if __name__ == "__main__":
         # "airfoil", "poisson_gauss", "helmholtz"
 
         # WHAT IS THE EXPERIMENT?
-        which = "kolmogorov"
+        which = "wave_gauss"
+        folder = sys.argv[2]
 
     else:
-
+        folder = sys.argv[2]
         properties = json.loads(sys.argv[1].replace("'", '"'))
-        which = sys.argv[2]
+        which = sys.argv[3]
 
     # What is your Foundation Model?
-    folder = "---- PROVIDE THE FOLDER PATH ----"
     in_dim = 5  # in_dim of the foudnarion model
     out_dim = 4  # out_dim of the foudnarion model
 
