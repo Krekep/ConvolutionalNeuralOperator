@@ -18,10 +18,11 @@ from DataLoaders.load_utils import load_dataset
 # It is a bit messy, but it works :)
 
 
-def _load_dict(files, which_example, steps=7, is_masked=None):
+def _load_dict(files, which_example, path_to_data="/.", steps=7, is_masked=None):
     d = dict()
 
     d["which"] = which_example
+    d["data_path"] = path_to_data
     for file in files:
         with open(file) as f:
             lines = f.readlines()

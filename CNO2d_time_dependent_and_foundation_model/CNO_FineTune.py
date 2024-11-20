@@ -26,7 +26,7 @@ from test_and_fine_tune_utils.fine_tune_lift import initialize_FT
 
 if __name__ == "__main__":
 
-    if len(sys.argv) < 4:
+    if len(sys.argv) < 5:
 
         properties = {
             "num_trajectories": 128,
@@ -54,12 +54,14 @@ if __name__ == "__main__":
         which = "wave_gauss"
         folder = sys.argv[1]
         folder_fine_tune = sys.argv[2]
+        path_to_data = sys.argv[3]
 
     else:
         folder = sys.argv[2]
         folder_fine_tune = sys.argv[3]
+        path_to_data = sys.argv[4]
         properties = json.loads(sys.argv[1].replace("'", '"'))
-        which = sys.argv[4]
+        which = sys.argv[5]
 
     # What is your Foundation Model?
     in_dim = 5  # in_dim of the foudnarion model
@@ -90,6 +92,7 @@ if __name__ == "__main__":
         out_dim=out_dim,
         steps=steps,
         is_masked=is_masked,
+        path_to_data=path_to_data,
     )
 
     model = initialize_FT(

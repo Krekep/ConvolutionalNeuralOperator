@@ -49,7 +49,14 @@ def _initialize_model(loader_dict, in_dim, out_dim):
 
 
 def load_model(
-    folder, which_example, in_dim, out_dim, steps=7, is_masked=None, label="123"
+    folder,
+    which_example,
+    in_dim,
+    out_dim,
+    path_to_data="/.",
+    steps=7,
+    is_masked=None,
+    label="123",
 ):
     train_file = folder + "/training_properties.txt"
     net_file = folder + "/net_architecture.txt"
@@ -58,6 +65,7 @@ def load_model(
         which_example=which_example,
         steps=steps,
         is_masked=is_masked,
+        path_to_data=path_to_data,
     )
     _model_file = _find_model(folder, label)
     model_file = folder + "/model" + label + "/" + _model_file
