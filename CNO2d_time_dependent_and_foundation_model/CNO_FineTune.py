@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
         properties = {
             "num_trajectories": 128,
-            "epochs": 221,
+            "epochs": 50,
             "lr": 0.00005,  # LR of the base part
             "lr_norm": 0.00125,  # LR of the normalization layers
             "lr_emb": 0.0005,  # LR of the Lift/Project
