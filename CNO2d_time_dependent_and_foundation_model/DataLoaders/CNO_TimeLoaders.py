@@ -1701,8 +1701,11 @@ class WaveGaussians(BaseTimeDataset):
 
         data_path = self.data_path + "/wave_equation/gaussians_15step.nc"
         self.reader = h5py.File(data_path, "r")
+
         print(f"LENGTH = {len(self.reader['solution'])}")
         self.N_max = len(self.reader["solution"])
+        self.N_val = int(self.N_max * 0.005) if int(self.N_max * 0.005) > 0 else 1
+        self.N_test = int(self.N_max * 0.02)
 
         self.constants = {
             "mean": 0.0334376316,
