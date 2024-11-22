@@ -37,7 +37,7 @@ def load_dataset(
     data_path: str = "---- PROVIDE THE FOLDER PATH ----",
 ):
 
-    num_samples = 0 # dic["num_samples"]
+    num_samples = 1  # dic["num_samples"]
     if "ns_" in which and dic["num_samples"] > 19640:
         num_samples = 19640
     if "eul_" in which and dic["num_samples"] > 9640:

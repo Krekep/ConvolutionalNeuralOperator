@@ -1704,7 +1704,7 @@ class WaveGaussians(BaseTimeDataset):
 
         print(f"LENGTH = {len(self.reader['solution'])}")
         self.N_max = len(self.reader["solution"])
-        self.N_val = int(self.N_max * 0.005) if int(self.N_max * 0.005) > 0 else 1
+        self.N_val = int(self.N_max * 0.005)
         self.N_test = int(self.N_max * 0.02)
 
         self.constants = {
