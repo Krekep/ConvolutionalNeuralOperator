@@ -265,5 +265,19 @@
     "out_dim": 1,
     "nmax": 10869,
     "step_max": 1
+  },
+  "piezo_conductivity": {
+    "include_zero": true,
+    "normalize": true,
+    "is_masked": null,
+    "in_dim": 3,
+    "out_dim": 2,
+    "nmax": 4096,
+    "step_max": 21,
+    "separate": true,
+    "separate_dim": [
+      1,
+      1
+    ]
   }
 }
