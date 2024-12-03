@@ -1,3 +1,4 @@
+import math
 import random
 import h5py
 import numpy as np
@@ -1793,11 +1794,13 @@ class PiezoConductivity(BaseTimeDataset):
         data_path = self.data_path + "/piezo_conductivity.nc"
         self.reader = h5py.File(data_path, "r")
 
+        std_sol = np.std(self.reader["solution"])
+        std_c = np.std(self.reader["c"])
         self.constants = {
             "mean": np.mean(self.reader["solution"]),
-            "std": np.std(self.reader["solution"]),
+            "std": std_sol if not math.isclose(std_sol, 0) else 1,
             "mean_c": np.mean(self.reader["c"]),
-            "std_c": np.std(self.reader["c"]),
+            "std_c": std_c if not math.isclose(std_c, 0) else 1,
             "time": 21.0,
         }
 
