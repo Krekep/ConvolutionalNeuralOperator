@@ -101,12 +101,13 @@ def create_frames(model, dataset, constants, gif_name="cno_gauss.gif"):
 
 
 which_example = "wave_gauss"
+label = "794"
 cno, loader_dict = load_model(
     folder=f"TrainedModels/Time_CNO_{which_example}_1",
     which_example=which_example,
     in_dim=3,
     out_dim=2,
-    label="794",
+    label=label,
 )
 wave_gauss_nc = netCDF4.Dataset("nc_data/res/Wave-Gauss.nc")
 wave_gauss_ic_nc = netCDF4.Dataset("nc_data/c_0.nc")

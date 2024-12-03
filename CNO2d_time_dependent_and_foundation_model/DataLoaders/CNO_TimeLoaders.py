@@ -1702,11 +1702,6 @@ class WaveGaussians(BaseTimeDataset):
         data_path = self.data_path + "/wave_equation/gaussians_15step.nc"
         self.reader = h5py.File(data_path, "r")
 
-        print(f"LENGTH = {len(self.reader['solution'])}")
-        self.N_max = len(self.reader["solution"])
-        self.N_val = int(self.N_max * 0.005)
-        self.N_test = int(self.N_max * 0.02)
-
         self.constants = {
             "mean": 0.0334376316,
             "std": 0.1171879068,
@@ -1714,6 +1709,19 @@ class WaveGaussians(BaseTimeDataset):
             "std_c": 601.51658913,
             "time": 15.0,
         }
+
+        print(
+            f"WAVE_GAUSSIAN solution mean = {np.mean(self.reader['solution'])}. Constants mean = {self.constants['mean']}"
+        )
+        print(
+            f"WAVE_GAUSSIAN solution std = {np.std(self.reader['solution'])}. Constants std = {self.constants['std']}"
+        )
+        print(
+            f"WAVE_GAUSSIAN cond mean = {np.mean(self.reader['c'])}. Constants mean = {self.constants['mean_c']}"
+        )
+        print(
+            f"WAVE_GAUSSIAN cond std = {np.std(self.reader['c'])}. Constants mean = {self.constants['std_c']}"
+        )
 
         self.input_dim = 2
         self.label_description = "[u],[c]"
@@ -1786,10 +1794,10 @@ class PiezoConductivity(BaseTimeDataset):
         self.reader = h5py.File(data_path, "r")
 
         self.constants = {
-            # "mean": 0.0334376316,
-            # "std": 0.1171879068,
-            # "mean_c": 2618.4593933,
-            # "std_c": 601.51658913,
+            "mean": np.mean(self.reader["solution"]).data.item(),
+            "std": np.std(self.reader["solution"]).data.item(),
+            "mean_c": np.mean(self.reader["c"]).data.item(),
+            "std_c": np.std(self.reader["c"]).data.item(),
             "time": 21.0,
         }
 
@@ -1828,9 +1836,9 @@ class PiezoConductivity(BaseTimeDataset):
             .reshape(1, self.resolution, self.resolution)
         )
 
-        # inputs = (inputs - self.constants["mean"]) / self.constants["std"]
-        # inputs_c = (inputs_c - self.constants["mean_c"]) / self.constants["std_c"]
-        # labels = (labels - self.constants["mean"]) / self.constants["std"]
+        inputs = (inputs - self.constants["mean"]) / self.constants["std"]
+        inputs_c = (inputs_c - self.constants["mean_c"]) / self.constants["std_c"]
+        labels = (labels - self.constants["mean"]) / self.constants["std"]
 
         inputs = torch.cat([inputs, inputs_c], dim=0)
         labels = torch.cat([labels, inputs_c], dim=0)

@@ -931,10 +931,10 @@ class CNO_time(pl.LightningModule):
         self.validation_step_outputs = []
         self.validation_times = []
 
-        self.best_val_loss_mean = 1000
-        self.best_val_loss_median = 1000
-        self.best_val_loss_mean_last = 1000
-        self.best_val_loss_median_last = 1000
+        self.best_val_loss_mean = 10000
+        self.best_val_loss_median = 10000
+        self.best_val_loss_mean_last = 10000
+        self.best_val_loss_median_last = 10000
 
         self.validation_errs = dict()
         self.validation_times = dict()
