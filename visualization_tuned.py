@@ -24,4 +24,11 @@ wave_gauss_nc = netCDF4.Dataset("nc_data/res/Wave-Gauss.nc")
 print(wave_gauss_nc)
 print(wave_gauss_nc.variables.keys())
 
-create_frames(cno, wave_gauss_nc, "cno-tuned-gauss.gif")
+constants = {
+    "mean": 0.0334376316,
+    "std": 0.1171879068,
+    "mean_c": 2618.4593933,
+    "std_c": 601.51658913,
+    "time": 15,
+}
+create_frames(cno, wave_gauss_nc, constants,"cno-tuned-gauss.gif")
