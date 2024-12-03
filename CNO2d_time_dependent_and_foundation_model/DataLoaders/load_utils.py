@@ -20,7 +20,7 @@ from DataLoaders.CNO_TimeLoaders import (
     PiecewiseConstantsTraceTimeDataset,
     KolmogorovFlow,
     Airfoil,
-    PiezoConductivity
+    PiezoConductivity,
 )
 
 

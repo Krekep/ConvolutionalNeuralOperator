@@ -23,7 +23,7 @@ if len(sys.argv) <= 4:
         "scheduler_gamma": 0.9,
         "epochs": 100,
         "batch_size": 32,
-        "time_steps": 7,  # How many time steps to select?
+        "time_steps": 10,  # How many time steps to select?
         "dt": 1,  # What is the time step? (1 means include entire traj, 2 means taking every other step, etc.
         "training_samples": 32,  # How many training samples?
         "time_input": 1,  # Should we include time in the input channels?
