@@ -49,10 +49,26 @@ def create_frames(model, dataset, constants, gif_name="cno_gauss.gif"):
         func_loss = torch.nn.L1Loss()(predicted[0][0], labels[0][0])
         ic_loss = torch.nn.L1Loss()(predicted[0][1], labels[0][1])
 
-        up_min = min(np.min(inputs[0][0].numpy()), np.min(predicted[0][0].numpy()), np.min(labels[0][0].numpy()))
-        up_max = max(np.max(inputs[0][0].numpy()), np.max(predicted[0][0].numpy()), np.max(labels[0][0].numpy()))
-        med_min = min(np.min(inputs[0][1].numpy()), np.min(predicted[0][1].numpy()), np.min(labels[0][1].numpy()))
-        med_max = max(np.max(inputs[0][1].numpy()), np.max(predicted[0][1].numpy()), np.max(labels[0][1].numpy()))
+        up_min = min(
+            np.min(inputs[0][0].numpy()),
+            np.min(predicted[0][0].numpy()),
+            np.min(labels[0][0].numpy()),
+        )
+        up_max = max(
+            np.max(inputs[0][0].numpy()),
+            np.max(predicted[0][0].numpy()),
+            np.max(labels[0][0].numpy()),
+        )
+        med_min = min(
+            np.min(inputs[0][1].numpy()),
+            np.min(predicted[0][1].numpy()),
+            np.min(labels[0][1].numpy()),
+        )
+        med_max = max(
+            np.max(inputs[0][1].numpy()),
+            np.max(predicted[0][1].numpy()),
+            np.max(labels[0][1].numpy()),
+        )
 
         plt.cla()
         ax[0, 0].imshow(inputs[0][0], vmin=up_min, vmax=up_max)
