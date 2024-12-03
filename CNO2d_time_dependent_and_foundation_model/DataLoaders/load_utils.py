@@ -20,6 +20,7 @@ from DataLoaders.CNO_TimeLoaders import (
     PiecewiseConstantsTraceTimeDataset,
     KolmogorovFlow,
     Airfoil,
+    PiezoConductivity
 )
 
 
@@ -37,7 +38,7 @@ def load_dataset(
     data_path: str = "---- PROVIDE THE FOLDER PATH ----",
 ):
 
-    num_samples = 1  # dic["num_samples"]
+    num_samples = dic["num_samples"]
     if "ns_" in which and dic["num_samples"] > 19640:
         num_samples = 19640
     if "eul_" in which and dic["num_samples"] > 9640:
@@ -309,6 +310,21 @@ def load_dataset(
 
     elif which == "wave_gauss":
         train_dataset = WaveGaussians(
+            max_num_time_steps=dic["time_steps"],
+            time_step_size=dic["dt"],
+            fix_input_to_time_step=fix_input_to_time_step,
+            which=which_loader,
+            resolution=128,
+            in_dist=True,
+            num_trajectories=num_samples,
+            data_path=data_path,
+            time_input=dic["time_input"],
+            masked_input=masked_input,
+            allowed_transitions=dic["allowed_tran"],
+        )
+
+    elif which == "piezo_conductivity":
+        train_dataset = PiezoConductivity(
             max_num_time_steps=dic["time_steps"],
             time_step_size=dic["dt"],
             fix_input_to_time_step=fix_input_to_time_step,
