@@ -614,7 +614,7 @@ class CNO_time(pl.LightningModule):
     ):
         self.mlflow_train_loss = []
         self.mlflow_mean_validation_loss = []
-        self.mlflow_medain_validation_loss = []
+        self.mlflow_median_validation_loss = []
 
         super(CNO_time, self).__init__()
 
