@@ -153,6 +153,15 @@ def _load_dict(files, which_example, path_to_data="/.", steps=7, is_masked=None)
         else:
             d["step_max"] = 15
 
+    elif which_example == "piezo_conductivity":
+        d["in_dim"] = 3 if d["time_input"] == True else 2
+        d["out_dim"] = 2
+        d["separate"] = True
+        d["separate_dim"] = [1, 1]
+
+        d["nmax"] = 4096
+        d["step_max"] = 21
+
     elif which_example in [
         "ns_brownian",
         "ns_pwc",

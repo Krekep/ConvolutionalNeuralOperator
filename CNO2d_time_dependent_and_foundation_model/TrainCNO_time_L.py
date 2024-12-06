@@ -1,4 +1,6 @@
 import random
+import mlflow
+mlflow.autolog()
 
 from pytorch_lightning import Trainer
 from CNO_timeModule_CIN import CNO_time
@@ -14,6 +16,7 @@ import sys
 import pandas as pd
 import torch
 
+
 if len(sys.argv) <= 4:
 
     training_properties = {
@@ -21,9 +24,9 @@ if len(sys.argv) <= 4:
         "weight_decay": 1e-6,
         "scheduler_step": 1,
         "scheduler_gamma": 0.9,
-        "epochs": 150,
+        "epochs": 200,
         "batch_size": 32,
-        "time_steps": 10,  # How many time steps to select?
+        "time_steps": 7,  # How many time steps to select?
         "dt": 1,  # What is the time step? (1 means include entire traj, 2 means taking every other step, etc.
         "training_samples": 32,  # How many training samples?
         "time_input": 1,  # Should we include time in the input channels?
@@ -69,6 +72,8 @@ if len(sys.argv) <= 4:
 
 else:
     raise ValueError("To many args")
+
+mlflow.set_tag("Training Info", f"CNO model for {which_example} data")
 
 # ---------------------------------------------------------
 cluster = True  # We always tun on cluster

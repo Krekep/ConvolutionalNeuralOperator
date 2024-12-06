@@ -188,3 +188,7 @@ fabric.properties
 *.gif
 *.nc
 *.pkl
+*.h5
+*.pyc
+
+.mlruns

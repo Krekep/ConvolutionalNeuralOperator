@@ -24,6 +24,7 @@ from einops import rearrange
 from einops.layers.torch import Rearrange
 import torch.nn as nn
 import copy
+import mlflow
 
 # --------------------------------------
 # FiLM: Visual Reasoning with a General Conditioning Layer
@@ -611,6 +612,9 @@ class CNO_time(pl.LightningModule):
         scheduler_gamma=0.98,
         loader_dictionary=dict(),
     ):
+        self.mlflow_train_loss = []
+        self.mlflow_mean_validation_loss = []
+        self.mlflow_medain_validation_loss = []
 
         super(CNO_time, self).__init__()
 
@@ -1116,6 +1120,8 @@ class CNO_time(pl.LightningModule):
                         + 1e-10,
                     )
 
+        mlflow.log_metric("Train loss", loss)
+        self.mlflow_train_loss.append(loss)
         self.log("loss", loss, prog_bar=True, on_step=True, sync_dist=True)
         return loss
 
@@ -1657,6 +1663,11 @@ class CNO_time(pl.LightningModule):
 
         median_loss = torch.median(_stack_all).item()
         mean_loss = torch.mean(_stack_all).item()
+
+        mlflow.log_metric("Median validation loss", median_loss)
+        mlflow.log_metric("Mean validation loss", mean_loss)
+        self.mlflow_mean_validation_loss.append(mean_loss)
+        self.mlflow_median_validation_loss.append(median_loss)
 
         self.log(
             "med_val_l",

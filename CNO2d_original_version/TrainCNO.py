@@ -1,3 +1,7 @@
+
+import mlflow
+mlflow.autolog()
+
 import copy
 import json
 import os
@@ -28,7 +32,7 @@ if len(sys.argv) == 2:
         "weight_decay": 1e-6,
         "scheduler_step": 10,
         "scheduler_gamma": 0.98,
-        "epochs": 1000,
+        "epochs": 4,
         "batch_size": 16,
         "exp": 1,  # Do we use L1 or L2 errors? Default: L1
         "training_samples": 256,  # How many training samples?
@@ -185,6 +189,7 @@ for epoch in range(epochs):
                 {"Batch": step + 1, "Train loss (in progress)": train_mse}
             )
 
+        mlflow.log_metric("Train loss", value=train_mse, step=epoch)
         writer.add_scalar("train_loss/train_loss", train_mse, epoch)
 
         with torch.no_grad():
@@ -229,6 +234,7 @@ for epoch in range(epochs):
 
             writer.add_scalar("train_loss/train_loss_rel", train_relative_l2, epoch)
             writer.add_scalar("val_loss/val_loss", test_relative_l2, epoch)
+            mlflow.log_metric("val_loss", value=test_relative_l2, step=epoch)
 
             if test_relative_l2 < best_model_testing_error:
                 best_model_testing_error = test_relative_l2

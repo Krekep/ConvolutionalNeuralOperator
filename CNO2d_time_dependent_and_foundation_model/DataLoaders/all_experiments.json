@@ -273,7 +273,7 @@
     "in_dim": 3,
     "out_dim": 2,
     "nmax": 4096,
-    "step_max": 21,
+    "step_max": 20,
     "separate": true,
     "separate_dim": [
       1,

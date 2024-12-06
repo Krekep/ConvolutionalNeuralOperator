@@ -1711,18 +1711,18 @@ class WaveGaussians(BaseTimeDataset):
             "time": 15.0,
         }
 
-        print(
-            f"WAVE_GAUSSIAN solution mean = {np.mean(self.reader['solution'])}. Constants mean = {self.constants['mean']}"
-        )
-        print(
-            f"WAVE_GAUSSIAN solution std = {np.std(self.reader['solution'])}. Constants std = {self.constants['std']}"
-        )
-        print(
-            f"WAVE_GAUSSIAN cond mean = {np.mean(self.reader['c'])}. Constants mean = {self.constants['mean_c']}"
-        )
-        print(
-            f"WAVE_GAUSSIAN cond std = {np.std(self.reader['c'])}. Constants mean = {self.constants['std_c']}"
-        )
+        # print(
+        #     f"WAVE_GAUSSIAN solution mean = {np.mean(self.reader['solution'])}. Constants mean = {self.constants['mean']}"
+        # )
+        # print(
+        #     f"WAVE_GAUSSIAN solution std = {np.std(self.reader['solution'])}. Constants std = {self.constants['std']}"
+        # )
+        # print(
+        #     f"WAVE_GAUSSIAN cond mean = {np.mean(self.reader['c'])}. Constants mean = {self.constants['mean_c']}"
+        # )
+        # print(
+        #     f"WAVE_GAUSSIAN cond std = {np.std(self.reader['c'])}. Constants mean = {self.constants['std_c']}"
+        # )
 
         self.input_dim = 2
         self.label_description = "[u],[c]"
