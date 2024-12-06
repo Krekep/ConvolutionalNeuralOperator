@@ -38,9 +38,9 @@ def create_frames(model, dataset, constants, gif_name="cno_gauss.gif"):
         time = (t - start_time) / end_time
         time_delta = torch.ones(1, 128, 128).type(torch.float32) * time
 
-        inputs_function = torch.tensor(dataset["solution"][sample_num, start_time]).reshape(
-            1, 128, 128
-        )
+        inputs_function = torch.tensor(
+            dataset["solution"][sample_num, start_time]
+        ).reshape(1, 128, 128)
         inputs_condition = torch.tensor(dataset["c"][sample_num]).reshape(1, 128, 128)
 
         inputs_function = (inputs_function - constants["mean"]) / constants["std"]
