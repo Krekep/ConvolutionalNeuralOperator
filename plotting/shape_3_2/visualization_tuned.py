@@ -20,7 +20,7 @@ cno = _initialize_model(
     new_in_dim=3,
     new_out_dim=2,
 )
-wave_gauss_nc = netCDF4.Dataset("nc_data/res/Wave-Gauss.nc")
+wave_gauss_nc = netCDF4.Dataset("../../nc_data/res/Wave-Gauss.nc")
 print(wave_gauss_nc)
 print(wave_gauss_nc.variables.keys())
 

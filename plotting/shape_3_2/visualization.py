@@ -124,7 +124,7 @@ def create_frames(model, dataset, constants, gif_name="cno_gauss.gif"):
 
 
 which_example = "piezo_conductivity"
-label = "3"
+label = "978"
 cno, loader_dict = load_model(
     folder=f"TrainedModels/Time_CNO_{which_example}_1",
     which_example=which_example,
@@ -132,7 +132,7 @@ cno, loader_dict = load_model(
     out_dim=2,
     label=label,
 )
-dataset_nc = netCDF4.Dataset("gp_data/piezo_conductivity.nc")
+dataset_nc = netCDF4.Dataset("../../gp_data/piezo_conductivity.nc")
 solution = dataset_nc["solution"]
 c = dataset_nc["c"]
 
