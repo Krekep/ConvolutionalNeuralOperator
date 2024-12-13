@@ -151,7 +151,7 @@ mlflow.set_tag("mlflow.runName", f"model{ver}")
 checkpoint_callback = ModelCheckpoint(
     dirpath=folder + "/model" + str(ver), monitor="mean_val_l"
 )
-early_part = 10
+early_part = 5
 early_stop_callback = EarlyStopping(
     monitor="mean_val_l", patience=training_properties["epochs"] // early_part
 )

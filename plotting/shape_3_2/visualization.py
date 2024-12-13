@@ -123,26 +123,38 @@ def create_frames(model, dataset, constants, gif_name="cno_gauss.gif"):
     gif.save(gif_name, dpi=300, writer="pillow", fps=2)
 
 
-which_example = "piezo_conductivity"
-label = "978"
+which_example = "wave_gauss"
+label = "2"
+variant = "3"
 cno, loader_dict = load_model(
-    folder=f"TrainedModels/Time_CNO_{which_example}_1",
+    folder=f"../../TrainedModels/Time_CNO_{which_example}_{variant}",
     which_example=which_example,
+    steps=10 if which_example == "piezo_conductivity" else 7,
     in_dim=3,
     out_dim=2,
     label=label,
 )
-dataset_nc = netCDF4.Dataset("../../gp_data/piezo_conductivity.nc")
+dataset_nc = netCDF4.Dataset("../../nc_data/res/Wave-Gauss.nc")
+# dataset_nc = netCDF4.Dataset("../../gp_data/piezo_conductivity.nc")
 solution = dataset_nc["solution"]
 c = dataset_nc["c"]
 
-std_sol = np.std(solution).data.item()
-std_c = np.std(c).data.item()
+# std_sol = np.std(solution).data.item()
+# std_c = np.std(c).data.item()
+# constants = {
+#     "mean": np.mean(solution).data.item(),
+#     "std": std_sol if not math.isclose(std_sol, 0) else 1,
+#     "mean_c": np.mean(c).data.item(),
+#     "std_c": std_c if not math.isclose(std_c, 0) else 1,
+#     "time": 20,
+# }
+
+# wave gauss
 constants = {
-    "mean": np.mean(solution).data.item(),
-    "std": std_sol if not math.isclose(std_sol, 0) else 1,
-    "mean_c": np.mean(c).data.item(),
-    "std_c": std_c if not math.isclose(std_c, 0) else 1,
-    "time": 20,
+    "mean": 0.0334376316,
+    "std": 0.1171879068,
+    "mean_c": 2618.4593933,
+    "std_c": 601.51658913,
+    "time": 15,
 }
-create_frames(cno, dataset_nc, constants, gif_name=f"cno_{which_example}_{label}.gif")
+create_frames(cno, dataset_nc, constants, gif_name=f"cno_{which_example}_{variant}_{label}.gif")

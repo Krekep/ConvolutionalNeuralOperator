@@ -1801,7 +1801,7 @@ class PiezoConductivity(BaseTimeDataset):
             "std": std_sol if not math.isclose(std_sol, 0) else 1,
             "mean_c": np.mean(self.reader["c"]),
             "std_c": std_c if not math.isclose(std_c, 0) else 1,
-            "time": 21.0,
+            "time": 20.0,
         }
 
         self.input_dim = 2
@@ -1873,7 +1873,7 @@ class PiezoConductivityNoCondition(BaseTimeDataset):
         self.constants = {
             "mean": np.mean(self.reader["solution"]),
             "std": std_sol if not math.isclose(std_sol, 0) else 1,
-            "time": 21.0,
+            "time": 20.0,
         }
 
         self.input_dim = 1
