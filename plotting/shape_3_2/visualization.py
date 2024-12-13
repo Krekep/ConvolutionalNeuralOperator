@@ -157,4 +157,6 @@ constants = {
     "std_c": 601.51658913,
     "time": 15,
 }
-create_frames(cno, dataset_nc, constants, gif_name=f"cno_{which_example}_{variant}_{label}.gif")
+create_frames(
+    cno, dataset_nc, constants, gif_name=f"cno_{which_example}_{variant}_{label}.gif"
+)
