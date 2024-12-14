@@ -1461,6 +1461,10 @@ class CNO_time(pl.LightningModule):
         # ---------------
         # Save validation errs:
         # ---------------
+        loss = loss.reshape(1)
+        for i in range(self.num_separate):
+            loss_sep[i] = loss_sep[i].reshape(1)
+
         if batch_idx == 0:
             self.validation_times[str(dataloader_idx)] = t_batch
             self.validation_errs[str(dataloader_idx)] = loss
