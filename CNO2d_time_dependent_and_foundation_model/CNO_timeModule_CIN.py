@@ -1475,9 +1475,7 @@ class CNO_time(pl.LightningModule):
                     self.validation_errs_sep[str(dataloader_idx)].append(loss_sep[i])
 
         else:
-            print("ROW 1474", str(dataloader_idx))
-            print("ROW 1475", self.validation_errs[str(dataloader_idx)])
-            print("ROW 1476", loss)
+
             self.validation_times[str(dataloader_idx)] = torch.cat(
                 (self.validation_times[str(dataloader_idx)], t_batch)
             )
