@@ -1349,8 +1349,8 @@ class CNO_time(pl.LightningModule):
         # Compute the loss
         # ---------------
         if not is_masked:
-            loss = torch.sqrt(nn.MSELoss()(output_pred_batch - output_batch))
-            loss_mae = nn.L1Loss()(output_pred_batch - output_batch)
+            loss = torch.sqrt(nn.MSELoss()(output_pred_batch, output_batch))
+            loss_mae = nn.L1Loss()(output_pred_batch, output_batch)
 
             # Зачем тут вообще (-3, -2, -1)? Это же равно torch.mean(abs(output_pred_batch - output_batch)) просто
             # CHANGE --- I change relative loss to simple mse
@@ -1372,8 +1372,8 @@ class CNO_time(pl.LightningModule):
             output_pred_batch[mask == 0.0] = 1.0
             output_batch[mask == 0.0] = 1.0
 
-            loss = torch.sqrt(nn.MSELoss()(output_pred_batch - output_batch))
-            loss_mae = nn.L1Loss()(output_pred_batch - output_batch)
+            loss = torch.sqrt(nn.MSELoss()(output_pred_batch, output_batch))
+            loss_mae = nn.L1Loss()(output_pred_batch, output_batch)
             # CHANGE --- I change relative loss to simple rmse
             # loss = (
             #     torch.mean(abs(output_pred_batch - output_batch), (-3, -2, -1))
