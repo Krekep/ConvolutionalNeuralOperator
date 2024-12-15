@@ -1349,8 +1349,8 @@ class CNO_time(pl.LightningModule):
         # Compute the loss
         # ---------------
         if not is_masked:
-            loss = torch.sqrt(nn.MSELoss()(output_pred_batch, output_batch))
-            loss_mae = nn.L1Loss()(output_pred_batch, output_batch)
+            # loss = nn.L1Loss()(output_pred_batch, output_batch)
+            loss = nn.L1Loss()(output_pred_batch, output_batch)
 
             # Зачем тут вообще (-3, -2, -1)? Это же равно torch.mean(abs(output_pred_batch - output_batch)) просто
             # CHANGE --- I change relative loss to simple mse
@@ -1372,8 +1372,8 @@ class CNO_time(pl.LightningModule):
             output_pred_batch[mask == 0.0] = 1.0
             output_batch[mask == 0.0] = 1.0
 
-            loss = torch.sqrt(nn.MSELoss()(output_pred_batch, output_batch))
-            loss_mae = nn.L1Loss()(output_pred_batch, output_batch)
+            loss = nn.L1Loss()(output_pred_batch, output_batch)
+            # loss_mae = nn.L1Loss()(output_pred_batch, output_batch)
             # CHANGE --- I change relative loss to simple rmse
             # loss = (
             #     torch.mean(abs(output_pred_batch - output_batch), (-3, -2, -1))
@@ -1394,15 +1394,8 @@ class CNO_time(pl.LightningModule):
             if not is_masked:
 
                 loss_sep = []
-                loss_val_sep = []
                 for i in range(self.num_separate):
-                    _loss = torch.sqrt(
-                        nn.MSELoss()(
-                            output_pred_batch[:, diff[i] : diff[i + 1]],
-                            output_batch[:, diff[i] : diff[i + 1]],
-                        )
-                    )
-                    _loss_val = nn.L1Loss()(
+                    _loss = nn.L1Loss()(
                         output_pred_batch[:, diff[i] : diff[i + 1]],
                         output_batch[:, diff[i] : diff[i + 1]],
                     )
@@ -1424,11 +1417,9 @@ class CNO_time(pl.LightningModule):
                     #     )
                     # ) * 100
                     loss_sep.append(_loss)
-                    loss_val_sep.append(_loss_val)
 
             else:
                 loss_sep = []
-                loss_val_sep = []
                 for i in range(self.num_separate):
                     mask = masked_dim[:, diff[i] : diff[i + 1]]
                     mask = (
@@ -1445,25 +1436,25 @@ class CNO_time(pl.LightningModule):
                     output_batch[:, diff[i] : diff[i + 1]][mask == 0.0] = 1.0
 
                     # CHANGE
-                    _loss = torch.sqrt(
-                        nn.MSELoss()(
-                            output_pred_batch[:, diff[i] : diff[i + 1]],
-                            output_batch[:, diff[i] : diff[i + 1]],
-                        )
-                    )
-                    _loss_val = nn.L1Loss()(
+                    # _loss = torch.sqrt(
+                    #     nn.MSELoss()(
+                    #         output_pred_batch[:, diff[i] : diff[i + 1]],
+                    #         output_batch[:, diff[i] : diff[i + 1]],
+                    #     )
+                    # )
+                    _loss = nn.L1Loss()(
                         output_pred_batch[:, diff[i] : diff[i + 1]],
                         output_batch[:, diff[i] : diff[i + 1]],
                     )
                     loss_sep.append(_loss)
-                    loss_val_sep.append(_loss_val)
 
         # ---------------
         # Save validation errs:
         # ---------------
         loss = loss.reshape(1)
-        for i in range(self.num_separate):
-            loss_sep[i] = loss_sep[i].reshape(1)
+        if is_separate:
+            for i in range(self.num_separate):
+                loss_sep[i] = loss_sep[i].reshape(1)
 
         if batch_idx == 0:
             self.validation_times[str(dataloader_idx)] = t_batch

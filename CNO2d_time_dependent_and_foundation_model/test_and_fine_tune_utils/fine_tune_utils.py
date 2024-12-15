@@ -4,6 +4,7 @@ import os
 
 from CNO_timeModule_CIN import CNO_time
 from CNO_timeModule_CIN import CNO_time, LiftProjectBlock
+from test_and_fine_tune_utils.fine_tune_lift import initialize_FT
 
 from test_and_fine_tune_utils.test_utils import _load_dict
 
@@ -18,7 +19,6 @@ def _find_model(folder, label="123"):
 
 
 def _initialize_model(loader_dict, in_dim, out_dim):
-
     model = CNO_time(
         in_dim=in_dim,
         in_size=128,
@@ -48,6 +48,58 @@ def _initialize_model(loader_dict, in_dim, out_dim):
     return model
 
 
+def _initialize_model_FT(
+    loader_dict,
+    diff_embedding=False,
+    old_in_dim=5,
+    new_in_dim=5,
+    old_out_dim=4,
+    new_out_dim=4,
+):
+    if diff_embedding:
+        _in_dim = old_in_dim
+        _out_dim = old_out_dim
+    else:
+        _in_dim = loader_dict["in_dim"]
+        _out_dim = loader_dict["out_dim"]
+
+    model = CNO_time(
+        in_dim=_in_dim,
+        out_dim=_out_dim,
+        in_size=128,
+        N_layers=loader_dict["N_layers"],
+        N_res=loader_dict["N_res"],
+        N_res_neck=loader_dict["N_res_neck"],
+        channel_multiplier=loader_dict["channel_multiplier"],
+        batch_norm=loader_dict["batch_norm"],
+        activation=loader_dict["activation"],
+        time_steps=loader_dict["time_steps"],
+        is_time=loader_dict["is_time"],
+        lr=loader_dict["learning_rate"],
+        batch_size=loader_dict["batch_size"],
+        weight_decay=loader_dict["weight_decay"],
+        loader_dictionary=loader_dict,
+        nl_dim=loader_dict["nl_dim"],
+        is_att=loader_dict["is_att"],
+        patch_size=loader_dict["patch_size"],
+        dim_multiplier=loader_dict["dim_multiplier"],
+        depth=loader_dict["depth"],
+        heads=loader_dict["heads"],
+        dim_head_multiplier=loader_dict["dim_head_multiplier"],
+        mlp_dim_multiplier=loader_dict["mlp_dim_multiplier"],
+        emb_dropout=loader_dict["emb_dropout"],
+    )
+    if diff_embedding:
+        model = initialize_FT(
+            model=model,
+            old_in_dim=5,
+            new_in_dim=new_in_dim,
+            new_out_dim=new_out_dim,
+            old_out_dim=4,
+        )
+    return model
+
+
 def load_model(
     folder,
     which_example,
@@ -57,6 +109,8 @@ def load_model(
     steps=7,
     is_masked=None,
     label="123",
+    fine_tuned=False,
+    fine_tuned_kwargs=None,
 ):
     train_file = folder + "/training_properties.txt"
     net_file = folder + "/net_architecture.txt"
@@ -69,7 +123,10 @@ def load_model(
     )
     _model_file = _find_model(folder, label)
     model_file = folder + "/model" + label + "/" + _model_file
-    model = _initialize_model(loader_dict, in_dim=in_dim, out_dim=out_dim)
+    if not fine_tuned:
+        model = _initialize_model(loader_dict, in_dim=in_dim, out_dim=out_dim)
+    else:
+        model = _initialize_model_FT(loader_dict, **fine_tuned_kwargs)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     checkpoint = torch.load(model_file, map_location=device)
