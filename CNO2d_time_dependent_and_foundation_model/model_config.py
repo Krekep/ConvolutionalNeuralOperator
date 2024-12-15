@@ -32,3 +32,5 @@ model_architecture_ = {
     "mlp_dim_multiplier": 1.0,
     "emb_dropout": 0.0,
 }
+
+early_part = 1
