@@ -1862,7 +1862,7 @@ class PiezoConductivityNoCondition(BaseTimeDataset):
         assert self.max_num_time_steps * self.time_step_size <= 20
 
         self.N_max = 4096
-        self.N_val = 60
+        self.N_val = 120
         self.N_test = 240
         self.resolution = 128
 
