@@ -1066,7 +1066,7 @@ class CNO_time(pl.LightningModule):
         # ---------------
 
         if not is_separate:
-            loss = torch.sqrt(nn.MSELoss()(output_batch, output_pred_batch))
+            loss = nn.L1Loss()(output_batch, output_pred_batch)
 
             # CHANGE --- i change relative mae to simple rmse
             # loss = nn.L1Loss()(output_batch, output_pred_batch) / nn.L1Loss()(
@@ -1692,9 +1692,6 @@ class CNO_time(pl.LightningModule):
 
         median_loss = torch.median(_stack_all).item()
         mean_loss = torch.mean(_stack_all).item()
-
-        mlflow.log_metric("Median validation loss", median_loss)
-        mlflow.log_metric("Mean validation loss", mean_loss)
 
         self.log(
             "med_val_l",
