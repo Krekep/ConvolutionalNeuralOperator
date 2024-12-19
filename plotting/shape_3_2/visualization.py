@@ -10,11 +10,12 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 
-def create_frames(model, dataset, constants, gif_name="cno_gauss.gif"):
+def create_frames(model, dataset, constants, sample_num=None, gif_name="cno_gauss"):
     fig, ax = plt.subplots(nrows=3, ncols=3, figsize=(15, 10))
 
     end_time = constants["time"]
-    sample_num = random.randint(0, len(dataset["solution"]) - 1)
+    sample_num = random.randint(0, len(dataset["solution"]) - 1) if sample_num is None else sample_num
+    gif_name += f"_sample_{sample_num}.gif"
 
     # for colorbar
     im_upper = ax[0, 0].imshow(torch.ones(128, 128))
@@ -53,7 +54,7 @@ def create_frames(model, dataset, constants, gif_name="cno_gauss.gif"):
         labels = (labels - constants["mean"]) / constants["std"]
         labels = torch.cat([labels, inputs_condition], dim=0).unsqueeze(dim=0)
 
-        predicted = model.forward(inputs, torch.tensor(t)).detach()
+        predicted = model.forward(inputs, torch.tensor(time)).detach()
         difference_cond = labels[0][1] - predicted[0][1]
         difference_sol = labels[0][0] - predicted[0][0]
         all_loss = torch.nn.L1Loss()(predicted, labels)
@@ -124,43 +125,44 @@ def create_frames(model, dataset, constants, gif_name="cno_gauss.gif"):
 
 
 if __name__ == "__main__":
-    which_example = "wave_gauss"
-    label = "3"
+    which_example = "piezo_conductivity"
+    label = "820"
     variant = "1"
     cno, loader_dict = load_model(
         folder=f"../../TrainedModels/Time_CNO_{which_example}_{variant}",
         which_example=which_example,
-        steps=10 if which_example == "piezo_conductivity" else 7,
+        steps=11 if which_example == "piezo_conductivity" else 7,
         in_dim=3,
         out_dim=2,
         label=label,
     )
-    dataset_nc = netCDF4.Dataset("../../nc_data/res/Wave-Gauss.nc")
-    # dataset_nc = netCDF4.Dataset("../../gp_data/piezo_conductivity.nc")
+    # dataset_nc = netCDF4.Dataset("../../nc_data/res/Wave-Gauss.nc")
+    dataset_nc = netCDF4.Dataset("../../gp_data/piezo_conductivity.nc")
     solution = dataset_nc["solution"]
     c = dataset_nc["c"]
 
-    # std_sol = np.std(solution).data.item()
-    # std_c = np.std(c).data.item()
-    # constants = {
-    #     "mean": np.mean(solution).data.item(),
-    #     "std": std_sol if not math.isclose(std_sol, 0) else 1,
-    #     "mean_c": np.mean(c).data.item(),
-    #     "std_c": std_c if not math.isclose(std_c, 0) else 1,
-    #     "time": 20,
-    # }
+    constants = {
+        "mean": 0.020957065746188164,
+        "std": 0.9308421611785889,
+        "mean_c": 0.0,
+        "std_c": 1,
+        "time": 20,
+    }
 
     # wave gauss
-    constants = {
-        "mean": 0.0334376316,
-        "std": 0.1171879068,
-        "mean_c": 2618.4593933,
-        "std_c": 601.51658913,
-        "time": 15,
-    }
+    # constants = {
+    #     "mean": 0.0334376316,
+    #     "std": 0.1171879068,
+    #     "mean_c": 2618.4593933,
+    #     "std_c": 601.51658913,
+    #     "time": 15,
+    # }
+
+    sample_num = 3508
     create_frames(
         cno,
         dataset_nc,
         constants,
-        gif_name=f"cno_{which_example}_{variant}_{label}.gif",
+        sample_num=sample_num,
+        gif_name=f"cno_{which_example}_{variant}_{label}",
     )

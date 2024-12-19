@@ -1,5 +1,7 @@
 import math
 import random
+import traceback
+
 import h5py
 import numpy as np
 import torch
@@ -112,7 +114,7 @@ class BaseTimeDataset(BaseDataset, ABC):
         max_num_time_steps: Optional[int] = None,
         time_step_size: Optional[int] = None,
         fix_input_to_time_step: Optional[int] = None,
-        allowed_transitions: Optional[list] = None,
+        allowed_transitions: Optional[list] = None,  # all2all
         **kwargs,
     ) -> None:
         """
@@ -171,7 +173,7 @@ class BaseTimeDataset(BaseDataset, ABC):
                                 (self.time_step_size * i, self.time_step_size * j)
                             )
 
-            self.multiplier = len(self.time_indices)
+            self.multiplier = len(self.time_indices)  # count of (i, j) times, where j > i, and less than time_steps
             print("time_indices", self.time_indices)
 
         if self.which == "train":
@@ -1794,14 +1796,14 @@ class PiezoConductivity(BaseTimeDataset):
         data_path = self.data_path + "/piezo_conductivity.nc"
         self.reader = h5py.File(data_path, "r")
 
-        std_sol = np.std(self.reader["solution"])
-        std_c = np.std(self.reader["c"])
+        # std_sol = np.std(self.reader["solution"])
+        # std_c = np.std(self.reader["c"])
         self.constants = {
-            "mean": np.mean(self.reader["solution"]),
-            "std": std_sol if not math.isclose(std_sol, 0) else 1,
-            "mean_c": np.mean(self.reader["c"]),
-            "std_c": std_c if not math.isclose(std_c, 0) else 1,
-            "time": 20.0,
+            "mean": 0.020957065746188164,
+            "std": 0.9308421611785889,
+            "mean_c": 0.0,
+            "std_c": 1,
+            "time": 20,
         }
 
         self.input_dim = 2
@@ -1869,11 +1871,11 @@ class PiezoConductivityNoCondition(BaseTimeDataset):
         data_path = self.data_path + "/piezo_conductivity.nc"
         self.reader = h5py.File(data_path, "r")
 
-        std_sol = np.std(self.reader["solution"])
+        # std_sol = np.std(self.reader["solution"])
         self.constants = {
-            "mean": np.mean(self.reader["solution"]),
-            "std": std_sol if not math.isclose(std_sol, 0) else 1,
-            "time": 20.0,
+            "mean": 0.020957065746188164,
+            "std": 0.9308421611785889,
+            "time": 20,
         }
 
         self.input_dim = 1
@@ -1882,8 +1884,11 @@ class PiezoConductivityNoCondition(BaseTimeDataset):
         self.post_init()
 
     def __getitem__(self, idx):
+        traceback.print_stack()
+        print(f"idx = {idx}, self.multiplier = {self.multiplier}")
         i = idx // self.multiplier
-        _idx = idx - i * self.multiplier
+        _idx = idx - i * self.multiplier  # _idx == idx % self.multiplier
+        print(f"i = {i}, _idx = {_idx}")
 
         if self.fix_input_to_time_step is None:
             t1, t2 = self.time_indices[_idx]
