@@ -38,4 +38,6 @@ constants = {
     "std_c": 601.51658913,
     "time": 15,
 }
-create_frames(cno, wave_gauss_nc, constants, gif_name=f"cno-tuned-{which_example}_{label}")
+create_frames(
+    cno, wave_gauss_nc, constants, gif_name=f"cno-tuned-{which_example}_{label}"
+)

@@ -14,7 +14,11 @@ def create_frames(model, dataset, constants, sample_num=None, gif_name="cno_gaus
     fig, ax = plt.subplots(nrows=3, ncols=3, figsize=(15, 10))
 
     end_time = constants["time"]
-    sample_num = random.randint(0, len(dataset["solution"]) - 1) if sample_num is None else sample_num
+    sample_num = (
+        random.randint(0, len(dataset["solution"]) - 1)
+        if sample_num is None
+        else sample_num
+    )
     gif_name += f"_sample_{sample_num}.gif"
 
     # for colorbar

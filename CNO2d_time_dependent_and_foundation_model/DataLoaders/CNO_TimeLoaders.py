@@ -173,7 +173,9 @@ class BaseTimeDataset(BaseDataset, ABC):
                                 (self.time_step_size * i, self.time_step_size * j)
                             )
 
-            self.multiplier = len(self.time_indices)  # count of (i, j) times, where j > i, and less than time_steps
+            self.multiplier = len(
+                self.time_indices
+            )  # count of (i, j) times, where j > i, and less than time_steps
             print("time_indices", self.time_indices)
 
         if self.which == "train":
@@ -1884,11 +1886,11 @@ class PiezoConductivityNoCondition(BaseTimeDataset):
         self.post_init()
 
     def __getitem__(self, idx):
-        traceback.print_stack()
-        print(f"idx = {idx}, self.multiplier = {self.multiplier}")
+        # traceback.print_stack()
+        # print(f"idx = {idx}, self.multiplier = {self.multiplier}")
         i = idx // self.multiplier
         _idx = idx - i * self.multiplier  # _idx == idx % self.multiplier
-        print(f"i = {i}, _idx = {_idx}")
+        # print(f"i = {i}, _idx = {_idx}")
 
         if self.fix_input_to_time_step is None:
             t1, t2 = self.time_indices[_idx]
