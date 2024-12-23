@@ -190,6 +190,9 @@ fabric.properties
 *.pkl
 *.h5
 *.pyc
+*.rar
+*.7z
+*.png
 
 mlruns
 TrainedModels

@@ -142,6 +142,7 @@ model = CNO_time(
     dim_head_multiplier=model_architecture_["dim_head_multiplier"],
     mlp_dim_multiplier=model_architecture_["mlp_dim_multiplier"],
     emb_dropout=model_architecture_["emb_dropout"],
+    conv_kernel=model_architecture_["conv_kernel"],
 )
 
 # ---------------------------------------------------------
