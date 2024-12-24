@@ -1798,13 +1798,13 @@ class PiezoConductivity(BaseTimeDataset):
         data_path = self.data_path + "/piezo_conductivity.nc"
         self.reader = h5py.File(data_path, "r")
 
-        # std_sol = np.std(self.reader["solution"])
-        # std_c = np.std(self.reader["c"])
+        std_sol = np.std(self.reader["solution"])
+        std_c = np.std(self.reader["c"])
         self.constants = {
-            "mean": 0.020957065746188164,
-            "std": 0.9308421611785889,
-            "mean_c": 0.0,
-            "std_c": 1,
+            "mean": np.mean(self.reader["solution"]),
+            "std": std_sol if not math.isclose(std_sol, 0) else 1,
+            "mean_c": np.mean(self.reader["c"]),
+            "std_c": std_c if not math.isclose(std_c, 0) else 1,
             "time": 20,
         }
 
