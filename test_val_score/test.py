@@ -13,22 +13,22 @@ dataset_nc = netCDF4.Dataset("../gp_data/piezo_conductivity.nc")
 solution = dataset_nc["solution"]
 c = dataset_nc["c"]
 
-# constants = {
-#     "mean": -0.004365722648799419,
-#     "std": 0.7487624287605286,
-#     "mean_c": -1.512402399497792e-12,
-#     "std_c": 1.387237325012336e-09,
-#     "time": 20,
-# }
-
-# model 645
 constants = {
-    "mean": 0.020957065746188164,
-    "std": 0.9308421611785889,
-    "mean_c": 0.0,
-    "std_c": 1,
+    "mean": -0.004365722648799419,
+    "std": 0.7487624287605286,
+    "mean_c": -1.512402399497792e-12,
+    "std_c": 1.387237325012336e-09,
     "time": 20,
 }
+
+# model 645
+# constants = {
+#     "mean": 0.020957065746188164,
+#     "std": 0.9308421611785889,
+#     "mean_c": 0.0,
+#     "std_c": 1,
+#     "time": 20,
+# }
 
 n_max = 4096
 n_test = 240
@@ -37,7 +37,7 @@ start = n_max - n_test - n_val
 length = n_val + n_test
 
 # for label in ["260", "489", "754"]:
-for label in ["645"]:
+for label in ["829"]:
     which_example = "piezo_conductivity"
     # label = "260"
     variant = "2"
@@ -107,4 +107,17 @@ for label in ["645"]:
         torch.clear_autocast_cache()
 
     best_samples.sort()
-    print(best_samples)
+    print("Label", label)
+    print("Best", best_samples[:5])
+    print("Worst", best_samples[-5:])
+    with open(f"{which_example}_validation_score_{variant}_{label}.txt", "w") as f:
+        f.write(
+            ", ".join(
+                map(
+                    lambda x: str(round(x[0].item(), 4)) + ", " + str(x[1]),
+                    best_samples,
+                )
+            )
+            + "\n"
+        )
+    print("*********")

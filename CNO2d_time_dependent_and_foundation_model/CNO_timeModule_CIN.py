@@ -1064,7 +1064,7 @@ class CNO_time(pl.LightningModule):
         # ---------------
 
         if not is_separate:
-            loss = nn.L1Loss()(output_batch, output_pred_batch)
+            loss = torch.sqrt(nn.MSELoss()(output_batch, output_pred_batch))
 
             # CHANGE --- i change relative mae to simple rmse
             # loss = nn.L1Loss()(output_batch, output_pred_batch) / nn.L1Loss()(

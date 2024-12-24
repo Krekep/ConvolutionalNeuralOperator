@@ -38,23 +38,30 @@ def create_frames(model, dataset, constants, sample_num=None, gif_name="cno_gaus
         for c_t in range(s_t, end_time):
             time_pairs.append((s_t, c_t))
 
+    inputs_condition = torch.tensor(
+        dataset["c"][sample_num], requires_grad=False
+    ).reshape(1, 128, 128)
+    inputs_condition = (inputs_condition - constants["mean_c"]) / constants["std_c"]
+
     def create_frame(time_index):
         start_time, t = time_pairs[time_index]
         time = (t - start_time) / end_time
-        time_delta = torch.ones(1, 128, 128).type(torch.float32) * time
+        time_delta = (
+            torch.ones(1, 128, 128, requires_grad=False).type(torch.float32) * time
+        )
 
         inputs_function = torch.tensor(
-            dataset["solution"][sample_num, start_time]
+            dataset["solution"][sample_num, start_time], requires_grad=False
         ).reshape(1, 128, 128)
-        inputs_condition = torch.tensor(dataset["c"][sample_num]).reshape(1, 128, 128)
 
         inputs_function = (inputs_function - constants["mean"]) / constants["std"]
-        inputs_condition = (inputs_condition - constants["mean_c"]) / constants["std_c"]
         inputs = torch.cat(
             [inputs_function, inputs_condition, time_delta], dim=0
         ).unsqueeze(dim=0)
 
-        labels = torch.tensor(dataset["solution"][sample_num, t]).reshape(1, 128, 128)
+        labels = torch.tensor(
+            dataset["solution"][sample_num, t], requires_grad=False
+        ).reshape(1, 128, 128)
         labels = (labels - constants["mean"]) / constants["std"]
         labels = torch.cat([labels, inputs_condition], dim=0).unsqueeze(dim=0)
 
@@ -124,14 +131,14 @@ def create_frames(model, dataset, constants, sample_num=None, gif_name="cno_gaus
         )
         return ax[0, 0], ax[1, 0], ax[0, 1], ax[1, 1], ax[0, 2], ax[1, 2]
 
-    gif = animation.FuncAnimation(fig, create_frame, frames=len(time_pairs) // 2)
+    gif = animation.FuncAnimation(fig, create_frame, frames=len(time_pairs) // 6)
     gif.save(gif_name, dpi=300, writer="pillow", fps=2)
 
 
 if __name__ == "__main__":
     which_example = "piezo_conductivity"
-    label = "820"
-    variant = "1"
+    label = "829"
+    variant = "2"
     cno, loader_dict = load_model(
         folder=f"../../TrainedModels/Time_CNO_{which_example}_{variant}",
         which_example=which_example,
@@ -146,12 +153,21 @@ if __name__ == "__main__":
     c = dataset_nc["c"]
 
     constants = {
-        "mean": 0.020957065746188164,
-        "std": 0.9308421611785889,
-        "mean_c": 0.0,
-        "std_c": 1,
+        "mean": -0.004365722648799419,
+        "std": 0.7487624287605286,
+        "mean_c": -1.512402399497792e-12,
+        "std_c": 1.387237325012336e-09,
         "time": 20,
     }
+
+    # model 645
+    # constants = {
+    #     "mean": 0.020957065746188164,
+    #     "std": 0.9308421611785889,
+    #     "mean_c": 0.0,
+    #     "std_c": 1,
+    #     "time": 20,
+    # }
 
     # wave gauss
     # constants = {
@@ -162,11 +178,11 @@ if __name__ == "__main__":
     #     "time": 15,
     # }
 
-    sample_num = 3508
-    create_frames(
-        cno,
-        dataset_nc,
-        constants,
-        sample_num=sample_num,
-        gif_name=f"cno_{which_example}_{variant}_{label}",
-    )
+    for sample_num in [4034, 3981, 3903, 3893, 3789, 4032]:
+        create_frames(
+            cno,
+            dataset_nc,
+            constants,
+            sample_num=sample_num,
+            gif_name=f"cno_{which_example}_{variant}_{label}",
+        )

@@ -1788,11 +1788,11 @@ class WaveGaussians(BaseTimeDataset):
 class PiezoConductivity(BaseTimeDataset):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        assert self.max_num_time_steps * self.time_step_size <= 21
+        assert self.max_num_time_steps * self.time_step_size <= 20
 
         self.N_max = 4096
-        self.N_val = 60
-        self.N_test = 240
+        self.N_val = 360
+        self.N_test = 1
         self.resolution = 128
 
         data_path = self.data_path + "/piezo_conductivity.nc"
@@ -1807,6 +1807,7 @@ class PiezoConductivity(BaseTimeDataset):
             "std_c": std_c if not math.isclose(std_c, 0) else 1,
             "time": 20,
         }
+        print(self.constants)
 
         self.input_dim = 2
         self.label_description = "[u],[c]"
@@ -1866,8 +1867,8 @@ class PiezoConductivityNoCondition(BaseTimeDataset):
         assert self.max_num_time_steps * self.time_step_size <= 20
 
         self.N_max = 4096
-        self.N_val = 120
-        self.N_test = 240
+        self.N_val = 360
+        self.N_test = 1
         self.resolution = 128
 
         data_path = self.data_path + "/piezo_conductivity.nc"
@@ -1879,6 +1880,7 @@ class PiezoConductivityNoCondition(BaseTimeDataset):
             "std": 0.9308421611785889,
             "time": 20,
         }
+        print(self.constants)
 
         self.input_dim = 1
         self.label_description = "[u]"
