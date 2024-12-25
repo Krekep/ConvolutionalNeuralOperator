@@ -75,7 +75,13 @@ class BaseDataset(Dataset, ABC):
         assert self.N_test is not None and self.N_test > 0
         if self.which == "train":
             self.length = self.num_trajectories
-            self.start = 0
+            self.start = random.randint(
+                0,
+                max(
+                    0,
+                    self.N_max - self.N_val - self.N_test - self.num_trajectories - 1,
+                ),
+            )
         elif self.which == "val":
             self.length = self.N_val
             self.start = self.N_max - self.N_val - self.N_test
