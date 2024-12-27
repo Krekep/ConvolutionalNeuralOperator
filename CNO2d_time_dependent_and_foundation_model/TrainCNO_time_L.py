@@ -8,6 +8,7 @@ mlflow.autolog()
 from pytorch_lightning import Trainer
 from CNO_timeModule_CIN import CNO_time
 from pytorch_lightning.loggers import TensorBoardLogger
+from pytorch_lightning.utilities.model_summary import summarize
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 
 import json
@@ -144,6 +145,7 @@ model = CNO_time(
     emb_dropout=model_architecture_["emb_dropout"],
     conv_kernel=model_architecture_["conv_kernel"],
 )
+print(summarize(model, max_depth=5))
 
 # ---------------------------------------------------------
 

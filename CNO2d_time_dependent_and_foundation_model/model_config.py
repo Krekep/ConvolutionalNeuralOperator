@@ -31,7 +31,7 @@ model_architecture_ = {
     "dim_head_multiplier": 0.5,
     "mlp_dim_multiplier": 1.0,
     "emb_dropout": 0.0,
-    "conv_kernel_": 3,
+    "conv_kernel": 3,
 }
 
 early_part = 1
