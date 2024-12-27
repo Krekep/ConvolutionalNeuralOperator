@@ -1,3 +1,4 @@
+import json
 import math
 import random
 import traceback
@@ -1818,6 +1819,14 @@ class PiezoConductivity(BaseTimeDataset):
         self.solution[indices] = self.solution[new_indices]
         self.c = np.copy(self.reader["c"])
         self.c[indices] = self.c[new_indices]
+        f = open("DataLoaders/indices.txt", "w")
+        json.dump(
+            {
+                "old_keys": indices.tolist(),
+                "new_keys": new_indices.tolist(),
+            },
+            f,
+        )
 
         std_sol = np.std(self.solution)
         std_c = np.std(self.c)
