@@ -186,7 +186,13 @@ class BaseTimeDataset(BaseDataset, ABC):
 
         if self.which == "train":
             self.length = self.num_trajectories * self.multiplier
-            self.start = 0
+            self.start = random.randint(
+                0,
+                max(
+                    0,
+                    self.N_max - self.N_val - self.N_test - self.num_trajectories - 1,
+                ),
+            )
         elif self.which == "val":
             self.length = self.N_val * self.multiplier
             self.start = self.N_max - self.N_val - self.N_test
@@ -1804,12 +1810,21 @@ class PiezoConductivity(BaseTimeDataset):
         data_path = self.data_path + "/piezo_conductivity.nc"
         self.reader = h5py.File(data_path, "r")
 
-        std_sol = np.std(self.reader["solution"])
-        std_c = np.std(self.reader["c"])
+        indices = np.arange(self.N_max)
+        new_indices = np.arange(self.N_max)
+        np.random.shuffle(new_indices)
+
+        self.solution = np.copy(self.reader["solution"])
+        self.solution[indices] = self.solution[new_indices]
+        self.c = np.copy(self.reader["c"])
+        self.c[indices] = self.c[new_indices]
+
+        std_sol = np.std(self.solution)
+        std_c = np.std(self.c)
         self.constants = {
-            "mean": np.mean(self.reader["solution"]),
+            "mean": np.mean(self.solution),
             "std": std_sol if not math.isclose(std_sol, 0) else 1,
-            "mean_c": np.mean(self.reader["c"]),
+            "mean_c": np.mean(self.c),
             "std_c": std_c if not math.isclose(std_c, 0) else 1,
             "time": 20,
         }
@@ -1835,17 +1850,17 @@ class PiezoConductivity(BaseTimeDataset):
         time = t / self.constants["time"]
 
         inputs = (
-            torch.from_numpy(self.reader["solution"][i + self.start, t1])
+            torch.from_numpy(self.solution[i + self.start, t1])
             .type(torch.float32)
             .reshape(1, self.resolution, self.resolution)
         )
         inputs_c = (
-            torch.from_numpy(self.reader["c"][i + self.start])
+            torch.from_numpy(self.c[i + self.start])
             .type(torch.float32)
             .reshape(1, self.resolution, self.resolution)
         )
         labels = (
-            torch.from_numpy(self.reader["solution"][i + self.start, t2])
+            torch.from_numpy(self.solution[i + self.start, t2])
             .type(torch.float32)
             .reshape(1, self.resolution, self.resolution)
         )
