@@ -1961,6 +1961,75 @@ class PiezoConductivityNoCondition(BaseTimeDataset):
         return time, inputs, labels
 
 
+class NavierStokesNoCondition(BaseTimeDataset):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        assert self.max_num_time_steps * self.time_step_size <= 20
+
+        self.N_max = 1000
+        self.N_val = 100
+        self.N_test = 1
+        self.resolution = 64
+
+        data_path = self.data_path + "/navier_stokes_no_condition.nc"
+        self.reader = h5py.File(data_path, "r")
+
+        self.constants = {
+            "mean": 1.929536892930628e-06,
+            "std": 1.131550669670105,
+            "time": 20,
+        }
+        print(self.constants)
+
+        self.input_dim = 1
+        self.label_description = "[u]"
+
+        self.post_init()
+
+    def __getitem__(self, idx):
+        # traceback.print_stack()
+        # print(f"idx = {idx}, self.multiplier = {self.multiplier}")
+        i = idx // self.multiplier
+        _idx = idx - i * self.multiplier  # _idx == idx % self.multiplier
+        # print(f"i = {i}, _idx = {_idx}")
+
+        if self.fix_input_to_time_step is None:
+            t1, t2 = self.time_indices[_idx]
+            assert t2 >= t1
+            t = t2 - t1
+        else:
+            t1 = self.fix_input_to_time_step
+            t2 = self.time_step_size * (_idx + 1)
+            t = t2 - t1
+        time = t / self.constants["time"]
+
+        inputs = (
+            torch.from_numpy(self.reader["solution"][i + self.start, t1])
+            .type(torch.float32)
+            .reshape(1, self.resolution, self.resolution)
+        )
+        labels = (
+            torch.from_numpy(self.reader["solution"][i + self.start, t2])
+            .type(torch.float32)
+            .reshape(1, self.resolution, self.resolution)
+        )
+
+        inputs = (inputs - self.constants["mean"]) / self.constants["std"]
+        labels = (labels - self.constants["mean"]) / self.constants["std"]
+
+        # inputs = torch.cat([inputs, inputs_c], dim=0)
+        # labels = torch.cat([labels, inputs_c], dim=0)
+
+        if self.time_input:
+            inputs_t = (
+                torch.ones(1, self.resolution, self.resolution).type(torch.float32)
+                * time
+            )
+            inputs = torch.cat((inputs, inputs_t), 0)
+
+        return time, inputs, labels
+
+
 # --------------------------------------------------------
 # Kolmogorov:
 # --------------------------------------------------------

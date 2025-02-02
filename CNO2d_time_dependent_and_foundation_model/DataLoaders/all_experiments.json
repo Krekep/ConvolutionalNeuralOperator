@@ -288,5 +288,15 @@
     "out_dim": 1,
     "nmax": 4096,
     "step_max": 20
+  },
+  "navier_stokes_no_condition": {
+    "include_zero": true,
+    "normalize": true,
+    "is_masked": null,
+    "in_dim": 2,
+    "out_dim": 1,
+    "nmax": 1000,
+    "step_max": 20,
+    "resolution": 64
   }
 }

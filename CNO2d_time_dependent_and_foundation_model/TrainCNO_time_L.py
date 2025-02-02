@@ -97,6 +97,7 @@ loader_dict["cluster"] = training_properties["cluster"]
 loader_dict["num_samples"] = training_properties["training_samples"]
 loader_dict["dt"] = training_properties["dt"]
 loader_dict["time_steps"] = training_properties["time_steps"]
+in_size = loader_dict["resolution"] if "resolution" in loader_dict.keys() else 128
 
 # ---------------------------------------------------------
 # Which transitions during the training are allowed?
@@ -118,7 +119,7 @@ loader_dict["allowed_tran"] = _allowed
 # Initialize CNO
 model = CNO_time(
     in_dim=loader_dict["in_dim"],
-    in_size=128,
+    in_size=in_size,
     N_layers=model_architecture_["N_layers"],
     N_res=model_architecture_["N_res"],
     N_res_neck=model_architecture_["N_res_neck"],

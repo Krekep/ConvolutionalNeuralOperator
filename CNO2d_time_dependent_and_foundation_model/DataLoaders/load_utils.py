@@ -22,6 +22,7 @@ from DataLoaders.CNO_TimeLoaders import (
     Airfoil,
     PiezoConductivity,
     PiezoConductivityNoCondition,
+    NavierStokesNoCondition,
 )
 
 
@@ -346,6 +347,21 @@ def load_dataset(
             fix_input_to_time_step=fix_input_to_time_step,
             which=which_loader,
             resolution=128,
+            in_dist=True,
+            num_trajectories=num_samples,
+            data_path=data_path,
+            time_input=dic["time_input"],
+            masked_input=masked_input,
+            allowed_transitions=dic["allowed_tran"],
+        )
+
+    elif which == "navier_stokes_no_condition":
+        train_dataset = NavierStokesNoCondition(
+            max_num_time_steps=dic["time_steps"],
+            time_step_size=dic["dt"],
+            fix_input_to_time_step=fix_input_to_time_step,
+            which=which_loader,
+            resolution=64,
             in_dist=True,
             num_trajectories=num_samples,
             data_path=data_path,
