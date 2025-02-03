@@ -1585,7 +1585,7 @@ class DarsyDataset(Dataset):
 
         # Note: Normalization constants for both ID and OOD should be used from the training set!
         # Load normalization constants from the TRAINING set:
-        file_data_train = f"{data_path}/darsy_{dim_size}x{dim_size}.pt"
+        file_data_train = f"{data_path}/darsy_{dim_size}x{dim_size}.nc"
         self.reader = torch.load(file_data_train)
         self.a = self.reader["a"]
         self.data = self.reader["solution"]
