@@ -1585,7 +1585,7 @@ class DarsyDataset(Dataset):
 
         # Note: Normalization constants for both ID and OOD should be used from the training set!
         # Load normalization constants from the TRAINING set:
-        file_data_train = f"{data_path}/darsy_{dim_size}x{dim_size}.nc"
+        file_data_train = f"{data_path}/darsy_{dim_size}x{dim_size}.h5"
         self.reader = h5py.File(file_data_train, "r")
         self.a = self.reader["a"]
         self.data = self.reader["solution"]
@@ -1615,10 +1615,10 @@ class DarsyDataset(Dataset):
 
     def __getitem__(self, index):
         inputs = (
-            self.a[index].type(torch.float32).reshape(1, self.dim_size, self.dim_size)
+            torch.tensor(self.a[index]).type(torch.float32).reshape(1, self.dim_size, self.dim_size)
         )
         labels = (
-            self.data[index]
+            torch.tensor(self.data[index])
             .type(torch.float32)
             .reshape(1, self.dim_size, self.dim_size)
         )
