@@ -1,6 +1,7 @@
 import random
 
 import h5py
+import netCDF4
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
@@ -1586,7 +1587,7 @@ class DarsyDataset(Dataset):
         # Note: Normalization constants for both ID and OOD should be used from the training set!
         # Load normalization constants from the TRAINING set:
         file_data_train = f"{data_path}/darsy_{dim_size}x{dim_size}.nc"
-        self.reader = torch.load(file_data_train)
+        self.reader = netCDF4.Dataset(file_data_train)
         self.a = self.reader["a"]
         self.data = self.reader["solution"]
         self.dim_size = dim_size
