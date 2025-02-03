@@ -169,6 +169,13 @@ def _load_dict(files, which_example, path_to_data="/.", steps=7, is_masked=None)
         d["nmax"] = 4096
         d["step_max"] = 20
 
+    elif which_example == "navier_stokes_no_condition":
+        d["in_dim"] = 2
+        d["out_dim"] = 1
+
+        d["nmax"] = 1000
+        d["step_max"] = 20
+
     elif which_example in [
         "ns_brownian",
         "ns_pwc",

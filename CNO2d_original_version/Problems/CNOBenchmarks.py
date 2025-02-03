@@ -1569,3 +1569,161 @@ class Darcy:
             shuffle=False,
             num_workers=num_workers,
         )
+
+
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+
+# KIP
+# a -> u
+
+
+class DarsyDataset(Dataset):
+    def __init__(
+        self, which="training", training_samples=900, dim_size=85, data_path=""
+    ):
+
+        # Note: Normalization constants for both ID and OOD should be used from the training set!
+        # Load normalization constants from the TRAINING set:
+        file_data_train = f"{data_path}/darsy_{dim_size}x{dim_size}.pt"
+        self.reader = torch.load(file_data_train)
+        self.a = self.reader["a"]
+        self.data = self.reader["solution"]
+        self.dim_size = dim_size
+
+        self.N_max = 1000
+        self.train = training_samples
+        self.validation = self.N_max - self.train
+
+        self.min_input = torch.min(self.a)
+        self.max_input = torch.max(self.a)
+        self.min_label = torch.min(self.data)
+        self.max_label = torch.max(self.data)
+
+        if which == "training":
+            self.length = self.train
+            self.start = 0
+        elif which == "validation":
+            self.length = self.validation
+            self.start = self.train
+        elif which == "testing":
+            self.length = 128
+            self.start = 0
+
+    def __len__(self):
+        return self.length
+
+    def __getitem__(self, index):
+        inputs = (
+            self.a[index].type(torch.float32).reshape(1, self.dim_size, self.dim_size)
+        )
+        labels = (
+            self.data[index]
+            .type(torch.float32)
+            .reshape(1, self.dim_size, self.dim_size)
+        )
+
+        inputs = (inputs - self.min_input) / (self.max_input - self.min_input)
+        labels = (labels - self.min_label) / (self.max_label - self.min_label)
+
+        return inputs, labels
+
+
+class Darsy:
+    def __init__(
+        self,
+        network_properties,
+        device,
+        batch_size,
+        training_samples=512,
+        s=64,
+        data_path="",
+    ):
+
+        # Must have parameters: ------------------------------------------------
+
+        if "in_size" in network_properties:
+            self.in_size = network_properties["in_size"]
+            assert self.in_size <= 128
+        else:
+            raise ValueError("You must specify the computational grid size.")
+
+        if "N_layers" in network_properties:
+            N_layers = network_properties["N_layers"]
+        else:
+            raise ValueError("You must specify the number of (D) + (U) blocks.")
+
+        if "N_res" in network_properties:
+            N_res = network_properties["N_res"]
+        else:
+            raise ValueError("You must specify the number of (R) blocks.")
+
+        if "N_res_neck" in network_properties:
+            N_res_neck = network_properties["N_res_neck"]
+        else:
+            raise ValueError("You must specify the number of (R)-neck blocks.")
+
+        # Load default parameters if they are not in network_properties
+        network_properties = default_param(network_properties)
+
+        # ----------------------------------------------------------------------
+        kernel_size = network_properties["kernel_size"]
+        channel_multiplier = network_properties["channel_multiplier"]
+        retrain = network_properties["retrain"]
+
+        cutoff_den = network_properties["cutoff_den"]
+        filter_size = network_properties["filter_size"]
+        half_width_mult = network_properties["half_width_mult"]
+        lrelu_upsampling = network_properties["lrelu_upsampling"]
+        activation = network_properties["activation"]
+        ##----------------------------------------------------------------------
+
+        torch.manual_seed(retrain)
+
+        self.model = CNO(
+            in_dim=1,  # Number of input channels.
+            in_size=self.in_size,  # Input spatial size
+            N_layers=N_layers,  # Number of (D) and (U) Blocks in the network
+            N_res=N_res,  # Number of (R) Blocks per level
+            N_res_neck=N_res_neck,
+            channel_multiplier=channel_multiplier,
+            conv_kernel=kernel_size,
+            cutoff_den=cutoff_den,
+            filter_size=filter_size,
+            lrelu_upsampling=lrelu_upsampling,
+            half_width_mult=half_width_mult,
+            activation=activation,
+        ).to(device)
+
+        # ----------------------------------------------------------------------
+
+        # Change number of workers accoirding to your preference
+        num_workers = 0
+
+        self.train_loader = DataLoader(
+            DarsyDataset(
+                "training", training_samples, dim_size=self.in_size, data_path=data_path
+            ),
+            batch_size=batch_size,
+            shuffle=True,
+            num_workers=num_workers,
+        )
+        self.val_loader = DataLoader(
+            DarsyDataset(
+                "validation",
+                training_samples,
+                dim_size=self.in_size,
+                data_path=data_path,
+            ),
+            batch_size=batch_size,
+            shuffle=True,
+            num_workers=num_workers,
+        )
+        self.test_loader = DataLoader(
+            DarsyDataset(
+                "testing", training_samples, dim_size=self.in_size, data_path=data_path
+            ),
+            batch_size=batch_size,
+            shuffle=False,
+            num_workers=num_workers,
+        )

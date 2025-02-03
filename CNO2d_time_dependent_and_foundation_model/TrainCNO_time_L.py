@@ -146,7 +146,7 @@ model = CNO_time(
     emb_dropout=model_architecture_["emb_dropout"],
     conv_kernel=model_architecture_["conv_kernel"],
 )
-print(summarize(model, max_depth=5))
+print(summarize(model, max_depth=3))
 
 # ---------------------------------------------------------
 

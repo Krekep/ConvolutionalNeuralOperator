@@ -18,10 +18,10 @@ def _find_model(folder, label="123"):
     return model_file
 
 
-def _initialize_model(loader_dict, in_dim, out_dim):
+def _initialize_model(loader_dict, in_dim, out_dim, in_size=128):
     model = CNO_time(
         in_dim=in_dim,
-        in_size=128,
+        in_size=in_size,
         N_layers=loader_dict["N_layers"],
         N_res=loader_dict["N_res"],
         N_res_neck=loader_dict["N_res_neck"],
@@ -107,6 +107,7 @@ def load_model(
     out_dim,
     path_to_data="/.",
     steps=7,
+    in_size=128,
     is_masked=None,
     label="123",
     fine_tuned=False,
@@ -124,7 +125,9 @@ def load_model(
     _model_file = _find_model(folder, label)
     model_file = folder + "/model" + label + "/" + _model_file
     if not fine_tuned:
-        model = _initialize_model(loader_dict, in_dim=in_dim, out_dim=out_dim)
+        model = _initialize_model(
+            loader_dict, in_dim=in_dim, out_dim=out_dim, in_size=in_size
+        )
     else:
         model = _initialize_model_FT(loader_dict, **fine_tuned_kwargs)
 

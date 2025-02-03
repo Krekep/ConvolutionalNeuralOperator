@@ -17,6 +17,7 @@ def create_frames(
     main_start_time=0,
     sample_num=None,
     gif_name="cno_gauss.gif",
+    data_dim=128,
 ):
     """Function for create model prediction gif"""
     fig, ax = plt.subplots(nrows=2, ncols=3, figsize=(15, 10))
@@ -30,10 +31,10 @@ def create_frames(
     )
 
     # for colorbar
-    im_upper = ax[0, 0].imshow(torch.ones(128, 128))
-    im_lower_time = ax[1, 0].imshow(torch.ones(128, 128), vmin=0, vmax=1)
-    im_lower_sol = ax[1, 1].imshow(torch.zeros(128, 128))
-    im_lower_cond = ax[1, 2].imshow(torch.zeros(128, 128))
+    im_upper = ax[0, 0].imshow(torch.ones(data_dim, data_dim))
+    im_lower_time = ax[1, 0].imshow(torch.ones(data_dim, data_dim), vmin=0, vmax=1)
+    im_lower_sol = ax[1, 1].imshow(torch.zeros(data_dim, data_dim))
+    im_lower_cond = ax[1, 2].imshow(torch.zeros(data_dim, data_dim))
     cbar_upper = fig.colorbar(im_upper, ax=ax[0])
     cbar_lower_time = fig.colorbar(im_lower_time, ax=ax[1, 0])
     cbar_lower_diff_sol = fig.colorbar(im_lower_sol, ax=ax[1, 1])
@@ -43,19 +44,25 @@ def create_frames(
         for c_t in range(s_t, end_time):
             time_pairs.append((s_t, c_t))
 
+    accumulated_loss = 0
+    accumulated_proc_loss = 0
+
     def create_frame(time_index):
+        nonlocal accumulated_loss, accumulated_proc_loss
         start_time, t = time_pairs[time_index]
         time = (t - start_time) / end_time
-        time_delta = torch.ones(1, 128, 128).type(torch.float32) * time
+        time_delta = torch.ones(1, data_dim, data_dim).type(torch.float32) * time
 
         inputs_function = torch.tensor(
             dataset["solution"][sample_num, start_time]
-        ).reshape(1, 128, 128)
+        ).reshape(1, data_dim, data_dim)
 
         inputs_function = (inputs_function - constants["mean"]) / constants["std"]
         inputs = torch.cat([inputs_function, time_delta], dim=0).unsqueeze(dim=0)
 
-        labels = torch.tensor(dataset["solution"][sample_num, t]).reshape(1, 128, 128)
+        labels = torch.tensor(dataset["solution"][sample_num, t]).reshape(
+            1, data_dim, data_dim
+        )
         labels = (labels - constants["mean"]) / constants["std"]
         labels = labels.unsqueeze(dim=0)
 
@@ -63,7 +70,15 @@ def create_frames(
         predicted = model.forward(inputs, torch.tensor(time)).detach()
         difference_sol = labels[0][0] - predicted[0][0]
         all_loss = torch.nn.L1Loss()(predicted, labels)
+        all_proc_loss = torch.mean(
+            torch.abs(labels[0][0] - predicted[0][0])
+            / torch.max(
+                torch.abs(labels[0][0]), torch.scalar_tensor(1e-8, dtype=torch.float32)
+            )
+        )
         func_loss = torch.nn.L1Loss()(predicted[0][0], labels[0][0])
+        accumulated_loss += all_loss
+        accumulated_proc_loss += all_proc_loss
 
         up_min = min(
             np.min(inputs[0][0].numpy()),
@@ -96,7 +111,10 @@ def create_frames(
 
         im_upper.set_clim(up_min, up_max)
         im_lower_sol.set_clim(diff_sol_min, diff_sol_max)
-        fig.suptitle(f"All MAE lose = {all_loss:.3f}, function loss = {func_loss:.3f}")
+        fig.suptitle(
+            f"Accumulated loss = {accumulated_loss:.3f}, all MAE loss = {all_loss:.3f}, function loss = {func_loss:.3f}\n"
+            f"Accumulated MAPE = {accumulated_proc_loss:.3f}, MAPE loss = {all_proc_loss:.3f}"
+        )
         return ax[0, 0], ax[1, 0], ax[0, 1], ax[1, 1], ax[0, 2], ax[1, 2]
 
     gif = animation.FuncAnimation(fig, create_frame, frames=len(time_pairs) // 4)
@@ -105,43 +123,42 @@ def create_frames(
 
 # input is (function, time_delta), output is (function)
 which_example = "piezo_conductivity_no_condition"
-label = "440"  # model label
-variant = "2"
+which_example = "navier_stokes_no_condition"
+label = "880"  # model label
+variant = "1"
 cno, loader_dict = load_model(
-    folder=f"../../TrainedModels/Time_CNO_{which_example}_{variant}",
+    folder=f"../../../TrainedModels/Time_CNO_{which_example}_{variant}",
     which_example=which_example,
-    steps=11,
+    steps=10,
     in_dim=2,
     out_dim=1,
     label=label,
+    in_size=64,
 )
-path_to_folder = ""
-dataset_nc = netCDF4.Dataset(f"{path_to_folder}/piezo_conductivity.nc")
+path_to_folder = "../../data_process"
+dataset_nc = netCDF4.Dataset(f"{path_to_folder}/{which_example}.nc")
 solution = dataset_nc["solution"]
-c = dataset_nc["c"]
 
 constants = {
-    "mean": -0.004365722648799419,
-    "std": 0.7487624287605286,
+    "mean": 1.929536892930628e-06,
+    "std": 1.131550669670105,
     "time": 20,
 }
 
 
-n_max = 4096
-n_test = 240
-n_val = 120
+n_max = 1000
+n_test = 1
+n_val = 100
 start = n_max - n_test - n_val
 length = n_val
 
 for sample_num in [
-    4034,
-    4018,
-    3989,
-    3949,
-    3904,
-    3903,
-    3891,
-    4049,
+    908,
+    922,
+    977,
+    934,
+    978,
+    953,
 ]:  # samples for which we build the gif
     # sample_num = 587
     create_frames(
@@ -151,4 +168,5 @@ for sample_num in [
         main_start_time=0,
         sample_num=sample_num,
         gif_name=f"cno_{which_example}_{variant}_{label}_sample_{sample_num}.gif",
+        data_dim=64,
     )
